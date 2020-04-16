@@ -58,9 +58,12 @@ Build the application via the following commands
 ~~~
 mkdir build
 cd build
-../init-build.sh -DPLATFORM=exynos5422 -DCAMKES_APP=case-uav-step1 -DARM_HYP=ON -DARM=ON
+../init-build.sh -DPLATFORM=exynos5422 -DCAMKES_APP=<application_name> -DARM_HYP=ON -DARM=ON
 ninja
 ~~~
+
+where the *<application_name>* is replaced with one of the applications listed in the section describing the included
+applications.
 
 The resulting seL4 image can be found in the build/images directory.
 
