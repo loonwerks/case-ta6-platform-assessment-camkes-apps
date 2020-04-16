@@ -1,0 +1,49 @@
+/*
+ * Copyright 2020 Collins Aerospace
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 3-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD3.txt" for details.
+ */
+#include <configurations/vm.h>
+
+import <std_connector.camkes>;
+import <global-connectors.camkes>;
+import <seL4VMDTBPassthrough.idl4>;
+import <FileServerInterface.camkes>;
+import <FileServer/FileServer.camkes>;
+import <SerialServer/SerialServer.camkes>;
+import <TimeServer/TimeServer.camkes>;
+import <vm-connectors.camkes>;
+import <devices.camkes>;
+
+component VM {
+    VM_INIT_DEF()
+}
+
+
+assembly {
+    composition {
+
+        VM_GENERAL_COMPOSITION_DEF()
+        component VM vmUxASUAV;
+        VM_COMPONENT_CONNECTIONS_DEF(UxASUAV)
+        VM_VIRTUAL_SERIAL_COMPOSITION_DEF(UxASUAV)
+
+        connection seL4VMDTBPassthrough vm_dtb1(from vmUxASUAV.dtb_self, to vmUxASUAV.dtb);
+
+    }
+    configuration {
+
+        VM_GENERAL_CONFIGURATION_DEF()
+        VM_CONFIGURATION_DEF(UxASUAV)
+        VM_VIRTUAL_SERIAL_CONFIGURATION_DEF(UxASUAV)
+
+        vmUxASUAV.cnode_size_bits = 18;
+        vmUxASUAV.simple_untyped21_pool = 12;
+        vmUxASUAV.simple_untyped12_pool = 12;
+        vmUxASUAV.num_extra_frame_caps = 0;
+        vmUxASUAV.extra_frame_map_address = 0;
+
+    }
+}
