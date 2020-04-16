@@ -49,7 +49,8 @@ ln -sf projects/case-ta6-platform-assessment/easy-settings.cmake
 Enter the seL4/CAmkES build environment by
 
 ~~~
-HOST_DIR=`pwd` make user
+cd <location of seL4-CAmkES-L4v-dockerfiles>
+make user HOST_DIR=<location of case-ta6-platform-assessment-camkes>
 ~~~
 
 Build the application via the following commands
