@@ -68,6 +68,27 @@ The resulting seL4 image can be found in the build/images directory.
 
 ### case-gs-step1
 
+The step 1 ground station application builds a seL4 image containing a single virtual machine.  The hardware ethernet
+device is mapped through to the VM and the VM contains OpenUxAS and configuration files to run as the ground station
+from the waterway search example.
+
 ### case-uav-step1
 
+The step 1 unmanned air vehicle application builds a seL4 image containing a single virtual machine.  The hardware ethernet
+device is mapped through to the VM and the VM contains OpenUxAS and configuration files to run as the unmanned air vehicle
+from the waterway search example.
+
 ## Installing on ODROID-XU4
+
+The ODROID-XU4 must be provisioned either with an MMC card or a MicroSD card containing the first and second stage bootloaders, the trust zone software and uBoot.  Instructions may be found at the
+[seL4 on ODROID-XU4](https://docs.sel4.systems/Hardware/OdroidXU.html) page.
+
+It is important to note that in addition, seL4 depends on uBoot to initialize the USB devices.  The `usb start`
+command should be made during the boot process from uBoot.
+
+Alternatively to fastboot, the seL4 capdl image may also be placed in file in a FAT formatted partition on the MMC or MicroSD
+card and the loaded from that partion.  The boot then may be made as follows:
+
+~~~
+mmc init; fatload mmc 0 ${loadaddr} capdl-loader-image-arm-exynos5; usb start; bootelf ${loadaddr}
+~~~
