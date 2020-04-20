@@ -142,6 +142,14 @@ AddFileToOverlayDir(
     overlay
 )
 
+# Overwrite /etc/network/interfaces file.
+AddFileToOverlayDir(
+    "interfaces"
+    ${CMAKE_CURRENT_SOURCE_DIR}/overlay_files/network/interfaces
+    "etc/network"
+    overlay
+)
+
 # Use initrd with crossvm kernel module and setup already included.
 set(rootfs_file "${CAMKES_VM_IMAGES_DIR}/${KernelARMPlatform}/rootfs_crossvm.cpio.gz")
 # Construct new rootfs
