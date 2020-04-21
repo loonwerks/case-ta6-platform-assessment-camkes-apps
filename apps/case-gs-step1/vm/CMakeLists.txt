@@ -123,7 +123,7 @@ MyAddExternalProjFilesToOverlay(
 )
 MyAddExternalProjFilesToOverlay(
     UxASGS
-    ${DOWNLOAD_DIR}/UxASGS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch/MessagesToSend
+    ${DOWNLOAD_DIR}/UxASGS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch/Messages
     overlay
     "home/uxas/ex/p2/01_Waterway/Messages"
     FILES
@@ -131,7 +131,7 @@ MyAddExternalProjFilesToOverlay(
 )
 MyAddExternalProjFilesToOverlay(
     UxASGS
-    ${DOWNLOAD_DIR}/UxASGS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch/MessagesToSend/tasks
+    ${DOWNLOAD_DIR}/UxASGS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch/Messages/tasks
     overlay
     "home/uxas/ex/p2/01_Waterway/Messages/tasks"
     FILES

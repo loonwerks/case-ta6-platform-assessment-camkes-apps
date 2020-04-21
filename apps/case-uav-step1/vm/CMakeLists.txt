@@ -123,9 +123,9 @@ MyAddExternalProjFilesToOverlay(
 )
 MyAddExternalProjFilesToOverlay(
     UxASUAV
-    ${DOWNLOAD_DIR}/UxASUAV/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch/InitializationMessages
+    ${DOWNLOAD_DIR}/UxASUAV/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch/InitMessages
     overlay
-    "home/uxas/ex/p2/01_Waterway/InitializationMessages"
+    "home/uxas/ex/p2/01_Waterway/InitMessages"
     FILES
     AirVehicleConfiguration_V400.xml
     AirVehicleState_V400.xml
