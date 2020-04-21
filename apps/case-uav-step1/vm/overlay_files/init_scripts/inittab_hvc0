@@ -25,7 +25,10 @@ null::sysinit:/bin/ln -sf /proc/self/fd/0 /dev/stdin
 null::sysinit:/bin/ln -sf /proc/self/fd/1 /dev/stdout
 null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 ::sysinit:/bin/hostname -F /etc/hostname
+::sysinit:adduser uxas -H -D
+::sysinit:chown -R uxas:uxas /home/uxas
 # now run any rc scripts
+::sysinit:chmod 755 /etc/init.d/S98uxas
 ::sysinit:/etc/init.d/rcS
 
 # Put a getty on the serial port
