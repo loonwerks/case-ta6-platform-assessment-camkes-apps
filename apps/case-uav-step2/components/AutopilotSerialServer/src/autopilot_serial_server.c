@@ -41,20 +41,20 @@ void post_init(void) {
     queue_init(p1_out_queue);
 }
 
+static const char message[] = {
+  '4', '0', '0',
+  '$',
+     'a', 't', 't', 'r', 'i', 'b', 'u', 't', 'e', 's',
+  '$',
+     'p', 'a', 'y', 'l', 'o', 'a', 'd',
+  '$'
+};
+
 int run(void) {
 
     int i = 0;
     int err = 0;
     data_t data;
-
-    const char message[] = {
-      '4', '0', '0'
-      '$',
-         'a', 't', 't', 'r', 'i', 'b', 'u', 't', 'e', 's',
-      '$',
-         'p', 'a', 'y', 'l', 'o', 'a', 'd',
-      '$'
-    };
 
     while (1) {
 
@@ -66,7 +66,7 @@ int run(void) {
         // Stage data
         data.len = sizeof(message);
         memcpy((void *) &data.payload[0], (const void *) &message[0], sizeof(message));
-        printf("%s: sending: %d\n", get_instance_name(), data.x);
+        printf("%s: sending: %d\n", get_instance_name(), data.len);
 
         // Send the data
         p1_out_aadl_event_data_send(&data);          

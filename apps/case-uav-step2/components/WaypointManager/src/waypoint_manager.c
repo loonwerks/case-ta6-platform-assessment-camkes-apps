@@ -93,7 +93,7 @@ void run_poll(void) {
             if (dataReceived) {
                 p1_in_aadl_event_data_receive(numDropped, &data);
             } else {
-                printf("%s: received nothing\n", get_instance_name());
+                /* printf("%s: received nothing\n", get_instance_name()); */
             }
         }
 
