@@ -43,6 +43,7 @@ void post_init(void) {
 }
 
 static const char message[] = {
+#define AIR_VEHICLE_STATE_MESSAGE
 #ifdef AIR_VEHICLE_STATE_MESSAGE
 0x61,0x66,0x72,0x6C,0x2E,0x63,0x6D,0x61,0x73,0x69,0x2E,0x41,0x69,0x72,0x56,0x65,
 0x68,0x69,0x63,0x6C,0x65,0x53,0x74,0x61,0x74,0x65,0x24,0x6C,0x6D,0x63,0x70,0x7C,
@@ -106,9 +107,8 @@ int run(void) {
         }
 
         // Stage data
-        data.len = sizeof(message);
         memcpy((void *) &data.payload[0], (const void *) &message[0], sizeof(message));
-        printf("%s: sending: %d\n", get_instance_name(), data.len);
+        printf("%s: sending: %d\n", get_instance_name(), sizeof(message));
 
         // Send the data
         p1_out_aadl_event_data_send(&data);          
