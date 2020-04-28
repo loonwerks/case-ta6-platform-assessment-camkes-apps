@@ -35,8 +35,8 @@ void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_
 }
 
 void p1_in_aadl_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received: %d  numDropped: %" PRIcounter "\n", get_instance_name(), data->len, numDropped);
-    hexdump("    ", 8, data->payload, data->len);
+    printf("%s: received: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    hexdump("    ", 8, data->payload, sizeof(data->payload));
 }
 
 //------------------------------------------------------------------------------
