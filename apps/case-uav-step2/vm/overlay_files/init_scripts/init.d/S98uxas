@@ -13,7 +13,7 @@ start() {
         chmod g+rw /dev/uio1
         chmod +x /home/uxas/ex/p2/01_Waterway/runUxAS_WaterwaySearch_UAV.sh
         while ! [ "$(cat /sys/class/net/eth0/operstate)" = "up" ]; do sleep 2; done;
-        start-stop-daemon -b -S -q -m -p /var/run/uxas.pid -c uxas --exec /home/uxas/ex/p2/01_Waterway/runUxAS_WaterwaySearch_UAV.sh
+        start-stop-daemon -b -S -q -m -p /var/run/uxas.pid -c uxas --exec /home/uxas/ex/p2/01_Waterway/runUxAS_WaterwaySearch_UAV.sh >> uxas-stdout
         echo "OK"
 }
 
