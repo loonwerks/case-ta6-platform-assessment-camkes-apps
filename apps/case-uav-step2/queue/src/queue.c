@@ -13,6 +13,10 @@
  * @TAG(DATA61_Adventium_BSD)
  */
 
+#ifdef __cplusplus
+#extern "C" {
+#endif
+
 #include <queue.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -92,3 +96,8 @@ bool queue_dequeue(recv_queue_t *recvQueue, counter_t *numDropped, data_t *data)
 bool queue_is_empty(recv_queue_t *recvQueue) {
   return (recvQueue->queue->numSent == recvQueue->numRecv);
 }
+
+#ifdef __cplusplus
+}
+#endif
+

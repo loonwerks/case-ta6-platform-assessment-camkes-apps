@@ -47,13 +47,18 @@ assembly {
         connection seL4Notification event_conn_wpm(from vmUxAS.wpm_ready, to waypoint_manager.p1_in_SendEvent);
         connection seL4SharedDataWithCaps cross_vm_conn_wpm(from vmUxAS.crossvm_dp_wpm,  to waypoint_manager.p1_in_queue);
 
-        connection seL4GlobalAsynch event_conn_serial(from autopilot_serial_server.p1_out_SendEvent, to vmUxAS.apss_done);
-        connection seL4SharedDataWithCaps cross_vm_conn_serial(from autopilot_serial_server.p1_out_queue, to vmUxAS.crossvm_dp_apss);
+        connection seL4GlobalAsynch event_conn_apss(from autopilot_serial_server.p1_out_SendEvent, to vmUxAS.apss_done);
+        connection seL4SharedDataWithCaps cross_vm_conn_apss(from autopilot_serial_server.p1_out_queue, to vmUxAS.crossvm_dp_apss);
 
         connection seL4VMDTBPassthrough vm_dtb1(from vmUxAS.dtb_self, to vmUxAS.dtb);
 
     }
     configuration {
+
+        /*
+        cross_vm_conn_apss.size = 16384;
+        cross_vm_conn_wpm.size = 16384;
+        */
 
         autopilot_serial_server.p1_out_queue_access = "W";
         autopilot_serial_server._priority = 50;
@@ -61,11 +66,11 @@ assembly {
 
         waypoint_manager.p1_in_queue_access = "R";
         waypoint_manager._priority = 50;
-        waypoint_manager._domain = 1;
-        waypoint_manager.p1_in_SendEvent_domain = 1;
+        waypoint_manager._domain = 2;
+        waypoint_manager.p1_in_SendEvent_domain = 2;
 
-        vmReceiver.crossvm_dp_0 = "R";
-        vmSender.crossvm_dp_0 = "W";
+        vmUxAS.crossvm_dp_apss = "R";
+        vmUxAS.crossvm_dp_wpm = "W";
 
         VM_GENERAL_CONFIGURATION_DEF()
         VM_CONFIGURATION_DEF(UxAS)

@@ -26,5 +26,5 @@ set(KernelArmVtimerUpdateVOffset OFF CACHE BOOL "" FORCE)
 # Don't trap WFI or WFE instructions in a VM.
 set(KernelArmDisableWFIWFETraps ON CACHE BOOL "" FORCE)
 
-set(KernelNumDomains 2 CACHE STRING "" FORCE)
+set(KernelNumDomains 3 CACHE STRING "" FORCE)
 set(KernelDomainSchedule "${CMAKE_CURRENT_LIST_DIR}/vm/domain_schedule.c" CACHE INTERNAL "")
