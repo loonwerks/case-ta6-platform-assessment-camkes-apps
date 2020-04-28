@@ -25,6 +25,7 @@ null::sysinit:/bin/ln -sf /proc/self/fd/0 /dev/stdin
 null::sysinit:/bin/ln -sf /proc/self/fd/1 /dev/stdout
 null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 ::sysinit:/bin/hostname -F /etc/hostname
+# Configure for UxAS user
 ::sysinit:adduser uxas -H -D
 ::sysinit:chown -R uxas:uxas /home/uxas
 # now run any rc scripts
