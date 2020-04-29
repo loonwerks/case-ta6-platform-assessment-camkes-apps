@@ -21,22 +21,23 @@ void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_
     for (int index = 0; index < max_line_len; ++index) {
         printf(" %02x", (uint8_t) index);
     }
-    printf("%s-----|", prefix);
+    printf("\n%s-----|", prefix);
     for (int index = 0; index < max_line_len; ++index) {
         printf("---");
     }
     size_t offset = 0, line_offset = 0;
     for (; line_offset < datalen; line_offset += max_line_len) {
-        printf("%s%04x |", prefix, (uint16_t) line_offset);
+        printf("\n%s%04x |", prefix, (uint16_t) line_offset);
         for (; offset < datalen && offset < line_offset + max_line_len; ++offset) {
             printf(" %02x", data[offset]);
         }
     }
+    printf("\n");
 }
 
 void p1_in_aadl_event_data_receive(counter_t numDropped, data_t *data) {
     printf("%s: received: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
-    hexdump("    ", 8, data->payload, sizeof(data->payload));
+    hexdump("    ", 32, data->payload, sizeof(data->payload));
 }
 
 //------------------------------------------------------------------------------
