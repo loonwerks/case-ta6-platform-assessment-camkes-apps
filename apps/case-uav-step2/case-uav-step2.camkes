@@ -23,12 +23,12 @@ import "components/WaypointManager/WaypointManager.camkes";
 component VM {
     VM_INIT_DEF()
     include <queue.h>;
-    dataport queue_t crossvm_dp_wpm;
-    emits SendEvent wpm_ready;
-    maybe consumes SendEvent wpm_done;
-    dataport queue_t crossvm_dp_apss;
-    emits SendEvent apss_ready;
-    maybe consumes SendEvent apss_done;
+
+    dataport queue_t air_vehicle_state_in_crossvm_dp;
+    maybe consumes SendEvent air_vehicle_state_in_done;
+
+    dataport queue_t automation_response_out_crossvm_dp;
+    emits SendEvent automation_response_out_ready;
 }
 
 
@@ -44,11 +44,17 @@ assembly {
         component AutopilotSerialServer autopilot_serial_server;
         component WaypointManager waypoint_manager;
 
-        connection seL4Notification event_conn_wpm(from vmUxAS.wpm_ready, to waypoint_manager.p1_in_SendEvent);
-        connection seL4SharedDataWithCaps cross_vm_conn_wpm(from vmUxAS.crossvm_dp_wpm,  to waypoint_manager.p1_in_queue);
+        connection seL4Notification event_conn_1(from vmUxAS.automation_response_out_ready, to waypoint_manager.automation_response_in_SendEvent);
+        connection seL4SharedDataWithCaps cross_vm_conn_1(from vmUxAS.automation_response_out_crossvm_dp, to waypoint_manager.automation_response_in_queue);
 
-        connection seL4GlobalAsynch event_conn_apss(from autopilot_serial_server.p1_out_SendEvent, to vmUxAS.apss_done);
-        connection seL4SharedDataWithCaps cross_vm_conn_apss(from autopilot_serial_server.p1_out_queue, to vmUxAS.crossvm_dp_apss);
+        connection seL4GlobalAsynch event_conn_2(from autopilot_serial_server.air_vehicle_state_out_1_SendEvent, to vmUxAS.air_vehicle_state_in_done);
+        connection seL4SharedDataWithCaps cross_vm_conn_2(from autopilot_serial_server.air_vehicle_state_out_1_queue, to vmUxAS.air_vehicle_state_in_crossvm_dp);
+
+        connection seL4Notification event_conn_3(from waypoint_manager.mission_command_out_SendEvent, to autopilot_serial_server.mission_command_in_SendEvent);
+        connection seL4SharedDataWithCaps cross_vm_conn_3(from waypoint_manager.mission_command_out_queue, to autopilot_serial_server.mission_command_in_queue);
+
+        connection seL4Notification event_conn_4(from autopilot_serial_server.air_vehicle_state_out_2_SendEvent, to waypoint_manager.air_vehicle_state_in_SendEvent);
+        connection seL4SharedDataWithCaps cross_vm_conn_4(from autopilot_serial_server.air_vehicle_state_out_2_queue, to waypoint_manager.air_vehicle_state_in_queue);
 
         connection seL4VMDTBPassthrough vm_dtb1(from vmUxAS.dtb_self, to vmUxAS.dtb);
 
@@ -56,21 +62,28 @@ assembly {
     configuration {
 
         /*
-        cross_vm_conn_apss.size = 16384;
-        cross_vm_conn_wpm.size = 16384;
+        cross_vm_conn_1.size = 16384;
+        cross_vm_conn_2.size = 16384;
+        cross_vm_conn_3.size = 16384;
+        cross_vm_conn_4.size = 16384;
         */
 
-        autopilot_serial_server.p1_out_queue_access = "W";
+        autopilot_serial_server.mission_command_in_queue_access = "R";
+        autopilot_serial_server.mission_command_in_SendEvent_domain = 1;
+        autopilot_serial_server.air_vehicle_state_out_queue_access = "W";
         autopilot_serial_server._priority = 50;
         autopilot_serial_server._domain = 1;
 
-        waypoint_manager.p1_in_queue_access = "R";
+        waypoint_manager.automation_response_in_queue_access = "R";
+        waypoint_manager.automation_response_in_SendEvent_domain = 2;
+        waypoint_manager.air_vehicle_state_in_queue_access = "R";
+        waypoint_manager.air_vehicle_state_in_SendEvent_domain = 2;
+        waypoint_manager.mission_command_out_queue_access = "W";
         waypoint_manager._priority = 50;
         waypoint_manager._domain = 2;
-        waypoint_manager.p1_in_SendEvent_domain = 2;
 
-        vmUxAS.crossvm_dp_apss = "R";
-        vmUxAS.crossvm_dp_wpm = "W";
+        vmUxAS.air_vehicle_state_in_crossvm_dp = "R";
+        vmUxAS.automation_response_out_crossvm_dp = "W";
 
         VM_GENERAL_CONFIGURATION_DEF()
         VM_CONFIGURATION_DEF(UxAS)

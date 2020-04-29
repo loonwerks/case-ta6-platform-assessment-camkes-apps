@@ -15,9 +15,19 @@ component WaypointManager {
     include <queue.h>;
     control;
 
-    // p1_in - AADL Event Data Port (in) representation
+    // automation_response_in - AADL Event Data Port (in) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
-    consumes SendEvent p1_in_SendEvent;
-    dataport queue_t p1_in_queue;
+    consumes SendEvent automation_response_in_SendEvent;
+    dataport queue_t automation_response_in_queue;
+
+    // air_vehicle_state_in - AADL Event Data Port (in) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    consumes SendEvent air_vehicle_state_in_SendEvent;
+    dataport queue_t air_vehicle_state_in_queue;
+
+    // mission_command_out - AADL Event Data Port (out) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    emits SendEvent mission_command_out_SendEvent;
+    dataport queue_t mission_command_out_queue;
 }
 

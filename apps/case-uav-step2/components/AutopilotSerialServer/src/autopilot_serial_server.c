@@ -7,9 +7,72 @@
 #include <string.h>
 #include <sel4/sel4.h>
 #include <stdlib.h>
+
 #include <counter.h>
 #include <data.h>
 #include <queue.h>
+
+void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen) {
+    printf("%s     |", prefix);
+    for (int index = 0; index < max_line_len; ++index) {
+        printf(" %02x", (uint8_t) index);
+    }
+    printf("\n%s-----|", prefix);
+    for (int index = 0; index < max_line_len; ++index) {
+        printf("---");
+    }
+    size_t offset = 0, line_offset = 0;
+    for (; line_offset < datalen; line_offset += max_line_len) {
+        printf("\n%s%04x |", prefix, (uint16_t) line_offset);
+        for (; offset < datalen && offset < line_offset + max_line_len; ++offset) {
+            printf(" %02x", data[offset]);
+        }
+    }
+    printf("\n");
+}
+
+
+// User specified input data receive handler for AADL Input Event Data Port (in) named
+// "mission_command_in".
+void mission_command_in_event_data_receive(counter_t numDropped, data_t *data) {
+    printf("%s: received mission command: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    hexdump("    ", 32, data->payload, sizeof(data->payload));
+}
+
+//------------------------------------------------------------------------------
+// Implementation of AADL Input Event Data Port (in) named "mission_command_in"
+// Three styles: poll, wait and callback.
+//
+// Callback would typically be avoid for safety critical systems. It is harder
+// to analyze since the callback handler is run on some arbitrary thread.
+//
+// NOTE: If we only need polling style receivers, we can get rid of SendEvent
+
+recv_queue_t missionCommandInRecvQueue;
+
+// Assumption: only one thread is calling this and/or reading mission_command_in_recv_counter.
+bool mission_command_in_event_data_poll(counter_t *numDropped, data_t *data) {
+    return queue_dequeue(&missionCommandInRecvQueue, numDropped, data);
+}
+
+// void mission_command_in_event_data_wait(counter_t *numDropped, data_t *data) {
+//     while (!mission_command_in_event_data_poll(numDropped, data)) {
+//         mission_command_in_SendEvent_wait();
+//     }
+// }
+
+// static void mission_command_in_handler(void *v) {
+//     counter_t numDropped;
+//     data_t data;
+// 
+//     // Handle ALL events that have been queued up
+//     while (mission_command_in_event_data_poll(&numDropped, &data)) {
+//         mission_command_in_event_data_receive(numDropped, &data);
+//     }
+//     while (! mission_command_in_SendEvent_reg_callback(&mission_command_in_handler, NULL));
+// }
+
+//--
 
 void done_emit_underlying(void) WEAK;
 static void done_emit(void) {
@@ -23,14 +86,24 @@ static void done_emit(void) {
 
 
 //------------------------------------------------------------------------------
-// Implementation of AADL Input Event Data Port (out) named "p1_out"
+// Implementation of AADL Input Event Data Port (out) named "air_vehicle_state_out_1"
 //
 // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
 
-// Assumption: only one thread is calling this and/or reading p1_in_recv_counter.
-void p1_out_aadl_event_data_send(data_t *data) {
-    queue_enqueue(p1_out_queue, data);
-    p1_out_SendEvent_emit();
+void air_vehicle_state_out_1_event_data_send(data_t *data) {
+    queue_enqueue(air_vehicle_state_out_1_queue, data);
+    air_vehicle_state_out_1_SendEvent_emit();
+    done_emit();
+}
+
+//------------------------------------------------------------------------------
+// Implementation of AADL Input Event Data Port (out) named "air_vehicle_state_out_2"
+//
+// NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+
+void air_vehicle_state_out_2_event_data_send(data_t *data) {
+    queue_enqueue(air_vehicle_state_out_2_queue, data);
+    air_vehicle_state_out_2_SendEvent_emit();
     done_emit();
 }
 
@@ -39,7 +112,9 @@ void p1_out_aadl_event_data_send(data_t *data) {
 
 void post_init(void) {
     printf("%s: post init queue\n", get_instance_name());
-    queue_init(p1_out_queue);
+    queue_init(air_vehicle_state_out_1_queue);
+    queue_init(air_vehicle_state_out_2_queue);
+    recv_queue_init(&missionCommandInRecvQueue, mission_command_in_queue);
 }
 
 static const char message[] = {
@@ -95,14 +170,17 @@ static const char message[] = {
 
 int run(void) {
 
-    int i = 0;
-    int err = 0;
+    counter_t numDropped;
     data_t data;
 
     while (1) {
 
         // Busy loop to slow things down
-        for(unsigned int j = 0; j < 10000000; ++j){
+        for(unsigned int j = 0; j < 1000000; ++j){
+            bool dataReceived = mission_command_in_event_data_poll(&numDropped, &data);
+            if (dataReceived) {
+                mission_command_in_event_data_receive(numDropped, &data);
+            }
             seL4_Yield();
         }
 
@@ -111,9 +189,8 @@ int run(void) {
         printf("%s: sending: %d\n", get_instance_name(), sizeof(message));
 
         // Send the data
-        p1_out_aadl_event_data_send(&data);          
+        air_vehicle_state_out_1_event_data_send(&data);          
+        air_vehicle_state_out_2_event_data_send(&data);          
     }
 }
-
-
 

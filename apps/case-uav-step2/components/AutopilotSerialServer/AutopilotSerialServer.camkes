@@ -15,9 +15,20 @@ component AutopilotSerialServer {
     include <queue.h>;
     control;
 
-    // p1_out - AADL Event Data Port (out) representation
+    // mission_command_in - AADL Event Data Port (in) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
-    emits SendEvent p1_out_SendEvent;
-    dataport queue_t p1_out_queue;
+    consumes SendEvent mission_command_in_SendEvent;
+    dataport queue_t mission_command_in_queue;
+
+    // air_vehicle_state_out_1 - AADL Event Data Port (out) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    emits SendEvent air_vehicle_state_out_1_SendEvent;
+    dataport queue_t air_vehicle_state_out_1_queue;
+
+    // air_vehicle_state_out_2 - AADL Event Data Port (out) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    emits SendEvent air_vehicle_state_out_2_SendEvent;
+    dataport queue_t air_vehicle_state_out_2_queue;
+
 }
 

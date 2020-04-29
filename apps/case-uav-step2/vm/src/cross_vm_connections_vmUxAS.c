@@ -19,7 +19,7 @@
 
 // The following device definitions correspond to the following camkes interfaces.
 
-// dataport queue_t crossvm_dp_wpm;
+// dataport queue_t automation_response_out_crossvm_dp;
 // emits SendEvent wpm_ready;
 
 // dataport queue_t crossvm_dp_apss;
@@ -30,11 +30,11 @@
 static struct camkes_crossvm_connection connections[NUM_CONNECTIONS];
 
 // these are defined in the dataport's glue code
-extern dataport_caps_handle_t crossvm_dp_wpm_handle;
-void wpm_ready_emit_underlying(void); 
+extern dataport_caps_handle_t automation_response_out_crossvm_dp_handle;
+void automation_response_out_ready_emit_underlying(void); 
 
-extern dataport_caps_handle_t crossvm_dp_apss_handle;
-seL4_Word apss_done_notification_badge(void);
+extern dataport_caps_handle_t air_vehicle_state_in_crossvm_dp_handle;
+seL4_Word air_vehicle_state_in_done_notification_badge(void);
 
 
 static int consume_callback(vm_t *vm, void *cookie)
@@ -47,15 +47,15 @@ static int consume_callback(vm_t *vm, void *cookie)
 void init_cross_vm_connections(vm_t *vm, void *cookie)
 {
     connections[0] = (struct camkes_crossvm_connection) {
-        .handle = &crossvm_dp_wpm_handle,
-        .emit_fn = wpm_ready_emit_underlying,
+        .handle = &automation_response_out_crossvm_dp_handle,
+        .emit_fn = automation_response_out_ready_emit_underlying,
         .consume_badge = -1
     };
 
     connections[1] = (struct camkes_crossvm_connection) {
-        .handle = &crossvm_dp_apss_handle,
+        .handle = &air_vehicle_state_in_crossvm_dp_handle,
         .emit_fn = NULL,
-        .consume_badge = apss_done_notification_badge()
+        .consume_badge = air_vehicle_state_in_done_notification_badge()
     };
 
     for (int i = 0; i < NUM_CONNECTIONS; i++) {
