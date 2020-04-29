@@ -29,9 +29,7 @@
     -->
     <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio1" />
     <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio0">
-        <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
-        <SubscribeToExternalMessage MessageType="afrl.cmasi.LineSearchTask"/>
-        <SubscribeToExternalMessage MessageType="afrl.cmasi.AutomationRequest"/>
+        <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
     </Bridge>
 
     <!-- Connect to AMASE (see config folder in OpenAMASE) -->
