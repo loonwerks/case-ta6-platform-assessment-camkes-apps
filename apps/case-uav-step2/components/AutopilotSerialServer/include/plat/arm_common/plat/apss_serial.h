@@ -13,14 +13,14 @@
 
 #define APSS_HARDWARE_SERIAL_INTERFACES  \
     emits Dummy dummy_source;            \
-    consumes Dummy serial_dev;
+    consumes Dummy apss_serial_dev;
 
 #define APSS_HARDWARE_SERIAL_ATTRIBUTES
 
 #define APSS_HARDWARE_SERIAL_COMPOSITION                                                 \
-        connection seL4DTBHardware serial_conn(from dummy_source, to serial_dev);
+        connection seL4DTBHardware serial_conn(from dummy_source, to apss_serial_dev);
 
 #define APSS_HARDWARE_SERIAL_CONFIG                    \
-        serial_dev.dtb = dtb({ "path" : "/soc/serial@12c00000" });  \
-        serial_dev.generate_interrupts = 1;
+        apss_serial_dev.dtb = dtb({ "path" : "/soc/serial@12c00000" });  \
+        spaa_serial_dev.generate_interrupts = 1;
 
