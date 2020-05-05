@@ -15,7 +15,31 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(ComponentAutopilotSerialServer C)
 
-DeclareCAmkESComponent(AutopilotSerialServer
-    SOURCES src/autopilot_serial_server.c
-    LIBS queue
+if(KernelArchARM)
+    set(CAmkESDTS ON CACHE BOOL "" FORCE)
+endif()
+
+set(CAmkESCPP ON CACHE BOOL "" FORCE)
+
+# ARM platforms have similar serial configurations in their DTSes and can share
+# similar headers and code
+if(KernelArchARM)
+    set(PlatPrefix "arm_common")
+else()
+    set(PlatPrefix "${KernelPlatform}")
+endif()
+
+DeclareCAmkESComponent(
+    AutopilotSerialServer
+    SOURCES
+    src/autopilot_serial_server.c
+    src/sentinel_serial_buffer.c
+    src/serial.c
+    src/plat.c
+    src/plat/${PlatPrefix}/plat.c
+    LIBS
+    queue
 )
+
+CAmkESAddCPPInclude("${CMAKE_CURRENT_LIST_DIR}/include/plat/${PlatPrefix}/")
+

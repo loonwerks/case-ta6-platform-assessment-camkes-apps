@@ -71,6 +71,7 @@ assembly {
         autopilot_serial_server.mission_command_in_queue_access = "R";
         autopilot_serial_server.mission_command_in_SendEvent_domain = 1;
         autopilot_serial_server.air_vehicle_state_out_queue_access = "W";
+        autopilot_serial_server.serial_getchar_shmem_size = 0x1000;
         autopilot_serial_server._priority = 50;
         autopilot_serial_server._domain = 1;
 
@@ -97,3 +98,4 @@ assembly {
 
     }
 }
+

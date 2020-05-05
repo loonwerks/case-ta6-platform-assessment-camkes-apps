@@ -11,6 +11,14 @@
  * See "LICENSE_BSD3.txt" for details.
  */
 
+#include <plat/apss_serial.h>
+
+import <std_connector.camkes>;
+import <TimeServer/TimeServer.camkes>;
+import <global-connectors.camkes>;
+import <serial.camkes>;
+
+
 component AutopilotSerialServer {
     include <queue.h>;
     control;
@@ -29,6 +37,21 @@ component AutopilotSerialServer {
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
     emits SendEvent air_vehicle_state_out_2_SendEvent;
     dataport queue_t air_vehicle_state_out_2_queue;
+
+
+    /* Size of the driver's heap */
+    attribute int heap_size = 16 * 1024;
+
+    APSS_HARDWARE_SERIAL_INTERFACES
+    APSS_HARDWARE_SERIAL_ATTRIBUTES
+
+    composition {
+        APSS_HARDWARE_SERIAL_COMPOSITION
+    }
+
+    configuration {
+        APSS_HARDWARE_SERIAL_CONFIG
+    }
 
 }
 
