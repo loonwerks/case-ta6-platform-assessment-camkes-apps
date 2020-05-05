@@ -37,6 +37,8 @@ DeclareCAmkESComponent(
     src/serial.c
     src/plat.c
     src/plat/${PlatPrefix}/plat.c
+    INCLUDES
+    include
     LIBS
     queue
 )

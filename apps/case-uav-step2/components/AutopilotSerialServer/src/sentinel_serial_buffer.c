@@ -1,6 +1,6 @@
-#pragma once
-
 #include <errno.h>
+#include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -34,28 +34,16 @@
 #define CHECKSUM_BUFFER_SIZE 32
 
 
-static const uint8_t serial_sentinel_before_payload_size = "+=+=+=+=";
+static const uint8_t serial_sentinel_before_payload_size[] = "+=+=+=+=";
 
 
-static const uint8_t serial_sentinel_before_payload_size_base = "+=";
+static const uint8_t serial_sentinel_after_payload_size[] = "#@#@#@#@";
 
 
-static const uint8_t serial_sentinel_after_payload_size = "#@#@#@#@";
+static const uint8_t serial_sentinel_before_checksum[] = "!%!%!%!%";
 
 
-static const uint8_t serial_sentinel_after_payload_size_base = "#@";
-
-
-static const uint8_t serial_sentinel_before_checksum = "!%!%!%!%";
-
-
-static const uint8_t serial_sentinel_before_checksum_base = "!%";
-
-
-static const uint8_t serial_sentinel_after_checksum = "?^?^?^?^";
-
-
-static const uint8_t serial_sentinel_after_checksum_base + "?^";
+static const uint8_t serial_sentinel_after_checksum[] = "?^?^?^?^";
 
 
 struct sentinel_serial_buffer *sentinel_serial_buffer_alloc() {
@@ -86,18 +74,18 @@ uint32_t calculate_checksum_in_ctx(const struct sentinel_serial_buffer *ctx, siz
 }
 
 
-bool append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_t buffer, size_t length) {
+int append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_t *buffer, size_t length) {
   size_t capacity_remaining = (ctx->write_offset + SENTINEL_SERIAL_BUFFER_RING_SIZE - ctx->read_offset)
     % SENTINEL_SERIAL_BUFFER_RING_SIZE;
   
   uint8_t payload_size_buffer[32] = { 0 };
-  snprintf((char *) payload_size_buffer, sizeof(payload_length_buffer), "%z", length);
-  size_t payload_size_length = strnlen(payload_length_buffer);
+  snprintf((char *) payload_size_buffer, sizeof(payload_size_buffer), "%z", length);
+  size_t payload_size_length = strnlen(payload_size_buffer, sizeof(payload_size_buffer));
 
   uint8_t payload_checksum_buffer[32] = { 0 };
   uint32_t payload_checksum  = calculate_checksum(buffer, length);
   snprintf((char *) payload_checksum_buffer, sizeof(payload_checksum_buffer), "%u", payload_checksum);
-  size_t payload_checksum_length = strnlen(payload_checksum_buffer);
+  size_t payload_checksum_length = strnlen(payload_checksum_buffer, sizeof(payload_checksum_buffer));
 
   size_t sentinelized_length = length
     + sizeof(serial_sentinel_before_payload_size)
@@ -111,7 +99,7 @@ bool append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_
 
     // Sentinel before payload size
     for (size_t index = 0; index < sizeof(serial_sentinel_before_payload_size);
-	 ++index, write_offset = (write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
+	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
       ctx->data[ctx->write_offset] = serial_sentinel_before_payload_size[index];
     }
 
@@ -135,7 +123,7 @@ bool append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_
 
     // Sentinel before checksum
     for (size_t index = 0; index < sizeof(serial_sentinel_before_checksum);
-	 ++index, write_offset = (write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
+	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
       ctx->data[ctx->write_offset] = serial_sentinel_before_checksum[index];
     }
 
@@ -151,28 +139,28 @@ bool append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_
       ctx->data[ctx->write_offset] = serial_sentinel_after_checksum[index];
     }
 
-    return true;
+    return 1;
   }
 
-  return false;
+  return 0;
 }
 
 
-bool append_char(struct sentinel_serial_buffer *ctx, uint8_t c) {
+int append_char(struct sentinel_serial_buffer *ctx, uint8_t c) {
   size_t capacity_remaining = (ctx->write_offset + SENTINEL_SERIAL_BUFFER_RING_SIZE - ctx->read_offset)
     % SENTINEL_SERIAL_BUFFER_RING_SIZE;
   if (1 <= capacity_remaining) {
     ctx->data[ctx->write_offset];
     ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE;
-    return true;
+    return 1;
   }
-  return false;
+  return 0;
 }
 
 
-bool find_sentinel_in_ring(struct sentinel_serial_buffer *ctx, const uint8_t *sentinel,
+int find_sentinel_in_ring(struct sentinel_serial_buffer *ctx, const uint8_t *sentinel,
 			   size_t sentinel_length, size_t *offset) {
-  bool found = false;
+  int found = 0;
   size_t search_offset = (ctx->read_offset + *offset) % SENTINEL_SERIAL_BUFFER_RING_SIZE;
   while (!found) {
     // if we've traversed the whole buffer without finding the sentinel, quit
@@ -186,7 +174,7 @@ bool find_sentinel_in_ring(struct sentinel_serial_buffer *ctx, const uint8_t *se
 	 ++symbols_found) {
       if (symbols_found == sentinel_length) {
 	*offset = (search_offset + SENTINEL_SERIAL_BUFFER_RING_SIZE - ctx->read_offset) % SENTINEL_SERIAL_BUFFER_RING_SIZE;
-	found = true;
+	found = 1;
 	break;
       }
     }
@@ -296,22 +284,22 @@ ssize_t get_next_payload_string(struct sentinel_serial_buffer *ctx, uint8_t *buf
   }
 
   size_t original_read_offset = ctx->read_offset;
-  ctx->read_offset = (ctx->read_offset + after_checksum_offset + sizeof(serial_sentinel_after_checksum_size))
+  ctx->read_offset = (ctx->read_offset + after_checksum_offset + sizeof(serial_sentinel_after_checksum))
     % SENTINEL_SERIAL_BUFFER_RING_SIZE;
 
   size_t payload_size =
-    (size_t) ring_stroul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
-			 original_read_offset + before_payload_size_offset + sizeof(serial_sentinel_before_payload_size),
-			 after_payload_size_offset);
+    (size_t) ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
+			  original_read_offset + before_payload_size_offset + sizeof(serial_sentinel_before_payload_size),
+			  after_payload_size_offset);
   if (errno) {
     errno = EINVAL;
     return -1;
   }
 
   uint32_t expected_checksum =
-    (size_t) ring_stroul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
-			 original_read_offset + before_checksum_offset + sizeof(serial_sentinel_before_checksum),
-			 after_checksum_offset);
+    (size_t) ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
+			  original_read_offset + before_checksum_offset + sizeof(serial_sentinel_before_checksum),
+			  after_checksum_offset);
   if (errno) {
     errno = EIO;
     return -1;
@@ -327,7 +315,7 @@ ssize_t get_next_payload_string(struct sentinel_serial_buffer *ctx, uint8_t *buf
 			      % SENTINEL_SERIAL_BUFFER_RING_SIZE];
   }
 
-  uint32_t computed_checksum = compute_checksum(buffer, payload_size);
+  uint32_t computed_checksum = calculate_checksum(buffer, payload_size);
   if (expected_checksum != computed_checksum) {
     errno = EIO;
     return -1;

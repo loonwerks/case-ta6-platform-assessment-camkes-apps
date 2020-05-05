@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include <sel4/sel4.h>
+#include <sync/mutex.h>
 /* #include <utils/attribute.h> */
 /* #include <utils/ansi.h> */
 #include <camkes.h>
@@ -60,8 +61,11 @@ static int done_output = 0;
 
 static int has_data = 0;
 
-static int num_getchar_clients = 0;
+static unsigned int num_getchar_clients = 0;
 static getchar_client_t *getchar_clients = NULL;
+
+/* Forward declarations */
+static void give_client_char(uint8_t c);
 
 static void flush_buffer(void)
 {
@@ -76,6 +80,8 @@ static void flush_buffer(void)
     output_buffer_bitmask &= ~BIT(0);
     fflush(stdout);
 }
+
+static sync_mutex_t serial_mutex;
 
 static int debug = 0;
 
@@ -96,7 +102,7 @@ static bool flush_buffer_line(void)
         return 0;
     }
     size_t length = (nlptr - &output_buffer[0]) + 1;
-    if (length < output_buffers_used && (output_buffer[length] == '\n' || output_buffer[length] == '\r')) {
+    if (length < output_buffer_used && (output_buffer[length] == '\n' || output_buffer[length] == '\r')) {
         length++;               /* Include \n after \r if present */
     }
     if (length == 0) {
@@ -127,7 +133,7 @@ static int is_newline(const uint8_t *c)
 static void internal_putchar(int c)
 {
     int UNUSED error;
-    error = serial_lock();
+    error = sync_mutex_lock(&serial_mutex);
     /* Add to buffer */
     int index = output_buffer_used;
     uint8_t *buffer = output_buffer;
@@ -147,25 +153,16 @@ static void internal_putchar(int c)
                     is_done = 0;
                 }
         }
-    } else if ((index >= 1 && is_newline(buffer + index - 1) && coalesce_status == -1)
-               || (last_out == b && output_buffer_bitmask == 0 && coalesce_status == -1)) {
-        /* Allow fast output (newline or same-as-last-client) if
-         * multi-input is not enabled OR last coalescing attempt
-         * failed due to a mismatch. This is important as client output
-         * may be delayed; coalescing failure due to empty buffer
-         * should lead to further buffering rather than early flush,
-         * in case we can coalesce later. */
-        flush_buffer();
     } else {
         output_buffer_bitmask |= BIT(0);
     }
     has_data = 1;
-    error = serial_unlock();
+    error = sync_mutex_unlock(&serial_mutex);
 }
 
 static void give_client_char(uint8_t c)
 {
-    getchar_client_t *client = &getchar_client;
+    getchar_client_t *client = &getchar_clients[0];
     uint32_t next_tail = (client->buf->tail + 1) % sizeof(client->buf->buf);
     if (next_tail == client->buf->head) {
         /* full */
@@ -195,7 +192,7 @@ static void handle_char(uint8_t c)
 static void timer_callback(void *data)
 {
     int UNUSED error;
-    error = serial_lock();
+    error = sync_mutex_lock(&serial_mutex);
     if (done_output) {
         done_output = 0;
     } else if (has_data) {
@@ -214,12 +211,12 @@ static void timer_callback(void *data)
             flush_buffer();
         }
     }
-    error = serial_unlock();
+    error = sync_mutex_unlock(&serial_mutex);
 }
 
 seL4_CPtr timeout_notification(void);
 
-int run(void)
+int run_serial(void)
 {
     seL4_CPtr notification = timeout_notification();
     while (1) {
@@ -231,7 +228,7 @@ int run(void)
 
 void autopilot_serial_server_irq_handle(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
-    int error = serial_lock();
+    int error = sync_mutex_lock(&serial_mutex);
     ZF_LOGF_IF(error, "Failed to lock serial server");
 
     plat_serial_interrupt(handle_char);
@@ -239,7 +236,7 @@ void autopilot_serial_server_irq_handle(void *data, ps_irq_acknowledge_fn_t ackn
     error = acknowledge_fn(ack_data);
     ZF_LOGF_IF(error, "Failed to acknowledge IRQ");
 
-    error = serial_unlock();
+    error = sync_mutex_unlock(&serial_mutex);
     ZF_LOGF_IF(error, "Failed to unlock serial server");
 }
 
@@ -251,7 +248,8 @@ void serial_putchar(int c)
 void pre_init(void)
 {
     int error;
-    error = serial_lock();
+    sync_mutex_init(&serial_mutex, 1);
+    error = sync_mutex_lock(&serial_mutex);
 
     error = camkes_io_ops(&io_ops);
     ZF_LOGF_IF(error, "Failed to initialise IO ops");
@@ -274,7 +272,7 @@ void pre_init(void)
     plat_post_init(&(io_ops.irq_ops));
     /* Start regular heartbeat of 500ms */
     timeout_periodic(0, 500000000);
-    error = serial_unlock();
+    error = sync_mutex_unlock(&serial_mutex);
 }
 
 void post_init(void)

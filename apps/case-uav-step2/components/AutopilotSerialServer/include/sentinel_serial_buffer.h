@@ -27,7 +27,7 @@
  */
 
 
-#define SENTINEL_SERIAL_BUFFER_RING_SIZE (x10000)
+#define SENTINEL_SERIAL_BUFFER_RING_SIZE (0x10000)
 
 
 typedef struct sentinel_serial_buffer {
@@ -57,10 +57,10 @@ uint32_t calculate_checksum(const uint8_t *buffer, size_t length);
 uint32_t calculate_checksum_in_ctx(const struct sentinel_serial_buffer *ctx, size_t start_offset, size_t length);
 
 
-bool append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_t buffer, size_t length);
+int append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_t *buffer, size_t length);
 
 
-bool append_char(struct sentinel_serial_buffer *ctx, uint8_t c);
+int append_char(struct sentinel_serial_buffer *ctx, uint8_t c);
 
 
 ssize_t get_next_payload_string(struct sentinel_serial_buffer *ctx, uint8_t *buffer, size_t buffer_size);
