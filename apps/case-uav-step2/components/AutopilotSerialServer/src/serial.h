@@ -12,4 +12,11 @@
 
 #include <platsupport/irq.h>
 
+
+#include <sys/types.h>
+
+ssize_t autopilot_serial_server_write_serial(void *data, size_t length);
+
+ssize_t autopilot_serial_server_read_serial(void *data, size_t length);
+
 void autopilot_serial_server_irq_handle(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data);

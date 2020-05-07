@@ -1,8 +1,11 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+
+#include "counter.h"
 
 
 /**
@@ -27,6 +30,10 @@
  */
 
 
+/*
+ * Odd things will happen the internal counters wrap at a point where the ring is not also wrapping.
+ * Make sure the counter wrap is a multiple of the ring size.  That is, stick to powers of 2.
+ */
 #define SENTINEL_SERIAL_BUFFER_RING_SIZE (0x10000)
 
 
@@ -36,12 +43,9 @@ typedef struct sentinel_serial_buffer {
    * @param data
    * @return 
    */
+  _Atomic counter_t write_counter;
+  _Atomic counter_t read_counter;
   uint8_t data[SENTINEL_SERIAL_BUFFER_RING_SIZE];
-  size_t write_offset;
-  size_t read_offset;
-  uint32_t valid_deserialize_count;
-  uint32_t invalid_deserialize_count;
-  uint32_t disregarded_data_count;
 } sentinel_serial_buffer_t;
 
 
@@ -51,16 +55,19 @@ struct sentinel_serial_buffer *sentinel_serial_buffer_alloc();
 void sentinel_serial_buffer_free(struct sentinel_serial_buffer *ctx);
 
 
-uint32_t calculate_checksum(const uint8_t *buffer, size_t length);
+uint32_t sentinel_serial_buffer_calculate_checksum(const uint8_t *buffer, size_t length);
 
 
-uint32_t calculate_checksum_in_ctx(const struct sentinel_serial_buffer *ctx, size_t start_offset, size_t length);
+bool sentinel_serial_buffer_sentinelize_string(uint8_t *dest_buffer, size_t dest_size, const uint8_t *src_buffer, size_t length);
 
 
-int append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_t *buffer, size_t length);
+bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_t *buffer, size_t length);
 
 
-int append_char(struct sentinel_serial_buffer *ctx, uint8_t c);
+bool sentinel_serial_buffer_append_char(struct sentinel_serial_buffer *ctx, uint8_t c);
 
 
-ssize_t get_next_payload_string(struct sentinel_serial_buffer *ctx, uint8_t *buffer, size_t buffer_size);
+ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_buffer *ctx, uint8_t *buffer, size_t buffer_size);
+
+
+bool sentinel_serial_buffer_get_next_char(struct sentinel_serial_buffer *ctx, uint8_t *c);

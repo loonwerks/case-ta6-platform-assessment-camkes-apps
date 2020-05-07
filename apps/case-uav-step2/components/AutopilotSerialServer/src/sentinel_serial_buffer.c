@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include "counter.h"
 #include "sentinel_serial_buffer.h"
 
 
@@ -56,7 +57,7 @@ void sentinel_serial_buffer_free(struct sentinel_serial_buffer *ctx) {
 }
 
 
-uint32_t calculate_checksum(const uint8_t *buffer, size_t length) {
+uint32_t sentinel_serial_buffer_calculate_checksum(const uint8_t *buffer, size_t length) {
   uint32_t checksum = 0;
   for (size_t index = 0; index < length; ++index) {
     checksum += (uint32_t) buffer[index];
@@ -65,25 +66,14 @@ uint32_t calculate_checksum(const uint8_t *buffer, size_t length) {
 }
 
 
-uint32_t calculate_checksum_in_ctx(const struct sentinel_serial_buffer *ctx, size_t start_offset, size_t length) {
-  uint32_t checksum = 0;
-  for (size_t index = 0; index < length; ++index) {
-    checksum += (uint32_t) ctx->data[(start_offset + index) % SENTINEL_SERIAL_BUFFER_RING_SIZE];
-  }
-  return checksum;
-}
-
-
-int append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_t *buffer, size_t length) {
-  size_t capacity_remaining = (ctx->write_offset + SENTINEL_SERIAL_BUFFER_RING_SIZE - ctx->read_offset)
-    % SENTINEL_SERIAL_BUFFER_RING_SIZE;
-  
+bool sentinel_serial_buffer_sentinelize_string(uint8_t *dest_buffer, size_t dest_size,
+					       const uint8_t *src_buffer, size_t length) {
   uint8_t payload_size_buffer[32] = { 0 };
   snprintf((char *) payload_size_buffer, sizeof(payload_size_buffer), "%z", length);
   size_t payload_size_length = strnlen(payload_size_buffer, sizeof(payload_size_buffer));
 
   uint8_t payload_checksum_buffer[32] = { 0 };
-  uint32_t payload_checksum  = calculate_checksum(buffer, length);
+  uint32_t payload_checksum  = sentinel_serial_buffer_calculate_checksum(src_buffer, length);
   snprintf((char *) payload_checksum_buffer, sizeof(payload_checksum_buffer), "%u", payload_checksum);
   size_t payload_checksum_length = strnlen(payload_checksum_buffer, sizeof(payload_checksum_buffer));
 
@@ -95,99 +85,177 @@ int append_sentinelized_string(struct sentinel_serial_buffer *ctx, const uint8_t
     + payload_checksum_length
     + sizeof(serial_sentinel_after_checksum);
 
-  if (sentinelized_length <= capacity_remaining) {
+  if (sentinelized_length < dest_size) {
 
     // Sentinel before payload size
-    for (size_t index = 0; index < sizeof(serial_sentinel_before_payload_size);
-	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
-      ctx->data[ctx->write_offset] = serial_sentinel_before_payload_size[index];
+    size_t write_index = 0;
+    for (size_t index = 0; index < sizeof(serial_sentinel_before_payload_size); ++index, ++write_index) {
+      dest_buffer[write_index] = serial_sentinel_before_payload_size[index];
     }
 
     // Payload size
-    for (size_t index = 0; index < payload_size_length;
-	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
-      ctx->data[ctx->write_offset] = payload_size_buffer[index];
+    for (size_t index = 0; index < payload_size_length; ++index, ++write_index) {
+      dest_buffer[write_index] = payload_size_buffer[index];
     }
 
     // Sentinel after payload size
-    for (size_t index = 0; index < sizeof(serial_sentinel_after_payload_size);
-	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
-      ctx->data[ctx->write_offset] = serial_sentinel_after_payload_size[index];
+    for (size_t index = 0; index < sizeof(serial_sentinel_after_payload_size); ++index, ++write_index) {
+      dest_buffer[write_index] = serial_sentinel_after_payload_size[index];
     }
 
       // Data payload
-    for (size_t index = 0; index < length;
-	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
-      ctx->data[ctx->write_offset] = buffer[index];
+    for (size_t index = 0; index < length; ++index, ++write_index) {
+      dest_buffer[write_index] = src_buffer[index];
     }
 
     // Sentinel before checksum
-    for (size_t index = 0; index < sizeof(serial_sentinel_before_checksum);
-	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
-      ctx->data[ctx->write_offset] = serial_sentinel_before_checksum[index];
+    for (size_t index = 0; index < sizeof(serial_sentinel_before_checksum); ++index, ++write_index) {
+      dest_buffer[write_index] = serial_sentinel_before_checksum[index];
     }
 
     // Checksum
-    for (size_t index = 0; index < payload_checksum_length;
-	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
-      ctx->data[ctx->write_offset] = payload_checksum_buffer[index];      
+    for (size_t index = 0; index < payload_checksum_length; ++index, ++write_index) {
+      dest_buffer[write_index] = payload_checksum_buffer[index];      
     }
 
     // Sentinel after checksum
-    for (size_t index = 0; index < sizeof(serial_sentinel_after_checksum);
-	 ++index, ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE) {
-      ctx->data[ctx->write_offset] = serial_sentinel_after_checksum[index];
+    for (size_t index = 0; index < sizeof(serial_sentinel_after_checksum); ++index, ++write_index) {
+      dest_buffer[write_index] = serial_sentinel_after_checksum[index];
     }
 
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 
-int append_char(struct sentinel_serial_buffer *ctx, uint8_t c) {
-  size_t capacity_remaining = (ctx->write_offset + SENTINEL_SERIAL_BUFFER_RING_SIZE - ctx->read_offset)
+bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_buffer *ctx,
+						       const uint8_t *buffer, size_t length) {
+  uint8_t payload_size_buffer[32] = { 0 };
+  snprintf((char *) payload_size_buffer, sizeof(payload_size_buffer), "%z", length);
+  size_t payload_size_length = strnlen(payload_size_buffer, sizeof(payload_size_buffer));
+
+  uint8_t payload_checksum_buffer[32] = { 0 };
+  uint32_t payload_checksum  = sentinel_serial_buffer_calculate_checksum(buffer, length);
+  snprintf((char *) payload_checksum_buffer, sizeof(payload_checksum_buffer), "%u", payload_checksum);
+  size_t payload_checksum_length = strnlen(payload_checksum_buffer, sizeof(payload_checksum_buffer));
+
+  size_t sentinelized_length = length
+    + sizeof(serial_sentinel_before_payload_size)
+    + payload_size_length
+    + sizeof(serial_sentinel_after_payload_size)
+    + sizeof(serial_sentinel_before_checksum)
+    + payload_checksum_length
+    + sizeof(serial_sentinel_after_checksum);
+
+  counter_t read_counter = ctx->read_counter;
+  // Acquire memory fence - ensure read of ctx->read_counter BEFORE reading data  
+  __atomic_thread_fence(__ATOMIC_ACQUIRE);
+  size_t capacity_remaining = (ctx->write_counter + SENTINEL_SERIAL_BUFFER_RING_SIZE - read_counter)
     % SENTINEL_SERIAL_BUFFER_RING_SIZE;
-  if (1 <= capacity_remaining) {
-    ctx->data[ctx->write_offset];
-    ctx->write_offset = (ctx->write_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE;
-    return 1;
+
+  // Strictly less because one element is always considered "dirty"
+  if (sentinelized_length < capacity_remaining) {
+
+    // Sentinel before payload size
+    counter_t write_index = ctx->write_counter;
+    for (size_t index = 0; index < sizeof(serial_sentinel_before_payload_size); ++index, ++write_index) {
+      ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = serial_sentinel_before_payload_size[index];
+    }
+
+    // Payload size
+    for (size_t index = 0; index < payload_size_length; ++index, ++write_index) {
+      ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = payload_size_buffer[index];
+    }
+
+    // Sentinel after payload size
+    for (size_t index = 0; index < sizeof(serial_sentinel_after_payload_size); ++index, ++write_index) {
+      ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = serial_sentinel_after_payload_size[index];
+    }
+
+      // Data payload
+    for (size_t index = 0; index < length; ++index, ++write_index) {
+      ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = buffer[index];
+    }
+
+    // Sentinel before checksum
+    for (size_t index = 0; index < sizeof(serial_sentinel_before_checksum); ++index, ++write_index) {
+      ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = serial_sentinel_before_checksum[index];
+    }
+
+    // Checksum
+    for (size_t index = 0; index < payload_checksum_length; ++index, ++write_index) {
+      ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = payload_checksum_buffer[index];      
+    }
+
+    // Sentinel after checksum
+    for (size_t index = 0; index < sizeof(serial_sentinel_after_checksum); ++index, ++write_index) {
+      ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = serial_sentinel_after_checksum[index];
+    }
+
+    // Release memory fence - ensure that data write above completes BEFORE we advance ctx->write_counter
+    __atomic_thread_fence(__ATOMIC_RELEASE);
+    ctx->write_counter = write_index;
+
+    return true;
   }
-  return 0;
+
+  return false;
 }
 
 
-int find_sentinel_in_ring(struct sentinel_serial_buffer *ctx, const uint8_t *sentinel,
-			   size_t sentinel_length, size_t *offset) {
-  int found = 0;
-  size_t search_offset = (ctx->read_offset + *offset) % SENTINEL_SERIAL_BUFFER_RING_SIZE;
+bool sentinel_serial_buffer_append_char(struct sentinel_serial_buffer *ctx, uint8_t c) {
+  counter_t read_counter = ctx->read_counter;
+  // Acquire memory fence - ensure read of ctx->read_counter BEFORE reading data  
+  __atomic_thread_fence(__ATOMIC_ACQUIRE);
+  size_t capacity_remaining = (ctx->write_counter + SENTINEL_SERIAL_BUFFER_RING_SIZE - read_counter)
+    % SENTINEL_SERIAL_BUFFER_RING_SIZE;
+  // Strictly less because one element is always considered "dirty"
+  if (1 < capacity_remaining) {
+    ctx->data[ctx->write_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE];
+    // Release memory fence - ensure that data write above completes BEFORE we advance ctx->write_counter
+    __atomic_thread_fence(__ATOMIC_RELEASE);
+    ++(ctx->write_counter);
+    return true;
+  }
+  return false;
+}
+
+
+bool sentinel_serial_buffer_find_sentinel_in_ring(const uint8_t *buffer, size_t buffer_size,
+						  counter_t read_counter, counter_t write_counter,
+						  const uint8_t *sentinel, size_t sentinel_length,
+						  counter_t *position) {
+  int found = false;
+  counter_t search_counter = read_counter + *position;
   while (!found) {
     // if we've traversed the whole buffer without finding the sentinel, quit
-    if ((search_offset + SENTINEL_SERIAL_BUFFER_RING_SIZE) % SENTINEL_SERIAL_BUFFER_RING_SIZE == ctx->write_offset) {
+    if (search_counter == write_counter) {
       break;
     }
 
-    for (int symbols_found = 0;
+    for (counter_t symbols_found = 0;
 	 symbols_found < sentinel_length
-	   && sentinel[symbols_found] == ctx->data[(search_offset + symbols_found) % SENTINEL_SERIAL_BUFFER_RING_SIZE];
+	   && sentinel[symbols_found] == buffer[(search_counter + symbols_found) % buffer_size];
 	 ++symbols_found) {
       if (symbols_found == sentinel_length) {
-	*offset = (search_offset + SENTINEL_SERIAL_BUFFER_RING_SIZE - ctx->read_offset) % SENTINEL_SERIAL_BUFFER_RING_SIZE;
-	found = 1;
+	*position = search_counter - read_counter;
+	found = true;
 	break;
       }
     }
     
-    // advance the search offset
-    search_offset = (search_offset + 1) % SENTINEL_SERIAL_BUFFER_RING_SIZE;
+    // advance the search counter
+    ++search_counter;
   }
 
   return found;
 }
 
 
-unsigned long ring_strtoul(const uint8_t *buffer, size_t buffer_size, size_t start_offset, size_t end_offset) {
+unsigned long sentinel_serial_buffer_ring_strtoul(const uint8_t *buffer, size_t buffer_size,
+						  size_t start_offset, size_t end_offset) {
   unsigned long base = 10;
   size_t decode_length = end_offset - start_offset;
   // Allow leading spaces
@@ -252,54 +320,71 @@ unsigned long ring_strtoul(const uint8_t *buffer, size_t buffer_size, size_t sta
 }
 
 
-ssize_t get_next_payload_string(struct sentinel_serial_buffer *ctx, uint8_t *buffer, size_t buffer_size) {
+ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_buffer *ctx,
+						       uint8_t *buffer, size_t buffer_size) {
   ssize_t result = 0;
 
-  size_t before_payload_size_offset = 0;
-  if (!find_sentinel_in_ring(ctx, serial_sentinel_before_payload_size, sizeof(serial_sentinel_before_payload_size),
-			     &before_payload_size_offset)) {
+  // Get a copy of write_counter so we can see if it changes durring read
+  counter_t original_write_counter = ctx->write_counter;
+  // Acquire memory fence - ensure read of ctx->write_counter BEFORE reading data
+  __atomic_thread_fence(__ATOMIC_ACQUIRE);
+  counter_t original_read_counter = ctx->read_counter;
+
+  counter_t before_payload_size_offset = 0;
+  if (!sentinel_serial_buffer_find_sentinel_in_ring(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
+						    original_read_counter, original_write_counter,
+						    serial_sentinel_before_payload_size,
+						    sizeof(serial_sentinel_before_payload_size),
+						    &before_payload_size_offset)) {
     errno = EAGAIN;
     return -1;
   }
 
-  size_t after_payload_size_offset = before_payload_size_offset + sizeof(serial_sentinel_before_payload_size);
-  if (!find_sentinel_in_ring(ctx, serial_sentinel_after_payload_size, sizeof(serial_sentinel_after_payload_size),
-			     &after_payload_size_offset)) {
+  counter_t after_payload_size_offset = before_payload_size_offset + sizeof(serial_sentinel_before_payload_size);
+  if (!sentinel_serial_buffer_find_sentinel_in_ring(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
+						    original_read_counter, original_write_counter,
+						    serial_sentinel_after_payload_size,
+						    sizeof(serial_sentinel_after_payload_size),
+						    &after_payload_size_offset)) {
     errno = EAGAIN;
     return -1;
   }
 
-  size_t before_checksum_offset = after_payload_size_offset + sizeof(serial_sentinel_after_payload_size);;
-  if (!find_sentinel_in_ring(ctx, serial_sentinel_before_checksum, sizeof(serial_sentinel_before_checksum),
-			     &before_checksum_offset)) {
+  counter_t before_checksum_offset = after_payload_size_offset + sizeof(serial_sentinel_after_payload_size);;
+  if (!sentinel_serial_buffer_find_sentinel_in_ring(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
+						    original_read_counter, original_write_counter,
+						    serial_sentinel_before_checksum,
+						    sizeof(serial_sentinel_before_checksum),
+						    &before_checksum_offset)) {
     errno = EAGAIN;
     return -1;
   }
 
-  size_t after_checksum_offset = before_checksum_offset + sizeof(serial_sentinel_before_checksum);
-  if (!find_sentinel_in_ring(ctx, serial_sentinel_after_checksum, sizeof(serial_sentinel_after_checksum),
-			     &after_checksum_offset)) {
+  counter_t after_checksum_offset = before_checksum_offset + sizeof(serial_sentinel_before_checksum);
+  if (!sentinel_serial_buffer_find_sentinel_in_ring(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
+						    original_read_counter, original_write_counter,
+						    serial_sentinel_after_checksum,
+						    sizeof(serial_sentinel_after_checksum),
+						    &after_checksum_offset)) {
     errno = EAGAIN;
     return -1;
   }
-
-  size_t original_read_offset = ctx->read_offset;
-  ctx->read_offset = (ctx->read_offset + after_checksum_offset + sizeof(serial_sentinel_after_checksum))
-    % SENTINEL_SERIAL_BUFFER_RING_SIZE;
 
   size_t payload_size =
-    (size_t) ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
-			  original_read_offset + before_payload_size_offset + sizeof(serial_sentinel_before_payload_size),
-			  after_payload_size_offset);
+    (size_t) sentinel_serial_buffer_ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
+						 original_read_counter
+						 + before_payload_size_offset + sizeof(serial_sentinel_before_payload_size),
+						 after_payload_size_offset);
   if (errno) {
     errno = EINVAL;
     return -1;
   }
 
   uint32_t expected_checksum =
-    (size_t) ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
-			  original_read_offset + before_checksum_offset + sizeof(serial_sentinel_before_checksum),
-			  after_checksum_offset);
+    (size_t) sentinel_serial_buffer_ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
+						 original_read_counter
+						 + before_checksum_offset + sizeof(serial_sentinel_before_checksum),
+						 after_checksum_offset);
   if (errno) {
     errno = EIO;
     return -1;
@@ -310,16 +395,44 @@ ssize_t get_next_payload_string(struct sentinel_serial_buffer *ctx, uint8_t *buf
     return -1;
   }
 
-  for (int index = 0; index < payload_size; ++index) {
-    buffer[index] = ctx->data[(original_read_offset + after_payload_size_offset + sizeof(serial_sentinel_after_payload_size))
-			      % SENTINEL_SERIAL_BUFFER_RING_SIZE];
+  for (counter_t index = 0; index < payload_size; ++index) {
+    buffer[index] =
+      ctx->data[(original_read_counter + after_payload_size_offset + sizeof(serial_sentinel_after_payload_size + index))
+		% SENTINEL_SERIAL_BUFFER_RING_SIZE];
   }
 
-  uint32_t computed_checksum = calculate_checksum(buffer, payload_size);
+  // Release memory fence - ensure copy operation complete BEFORE updating read counter
+  __atomic_thread_fence(__ATOMIC_RELEASE);
+  ctx->read_counter = original_read_counter + after_checksum_offset + sizeof(serial_sentinel_after_checksum);
+
+  uint32_t computed_checksum = sentinel_serial_buffer_calculate_checksum(buffer, payload_size);
   if (expected_checksum != computed_checksum) {
     errno = EIO;
     return -1;
   }
 
   return payload_size;
+}
+
+
+bool sentinel_serial_buffer_get_next_char(struct sentinel_serial_buffer *ctx, uint8_t *c) {
+  bool result = false;
+
+  // Get a copy of write_counter so we can see if it changes durring read
+  counter_t original_write_counter = ctx->write_counter;
+  // Acquire memory fence - ensure read of ctx->write_counter BEFORE reading data
+  __atomic_thread_fence(__ATOMIC_ACQUIRE);
+  counter_t original_read_counter = ctx->read_counter;
+
+  if (original_write_counter > original_read_counter) {
+    *c = ctx->data[original_read_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE];
+    
+    // Release memory fence - ensure copy operation complete BEFORE updating read counter
+    __atomic_thread_fence(__ATOMIC_RELEASE);
+    ctx->read_counter = original_read_counter + 1;
+
+    return true;
+  }
+
+  return result;
 }
