@@ -22,5 +22,5 @@
 
 #define APSS_HARDWARE_SERIAL_CONFIG                    \
         apss_serial_dev.dtb = dtb({ "path" : "/soc/serial@12c00000" });  \
-        spaa_serial_dev.generate_interrupts = 1;
+        apss_serial_dev.generate_interrupts = 1;
 
