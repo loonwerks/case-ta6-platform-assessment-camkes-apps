@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include <sel4/sel4.h>
-#include <sync/mutex.h>
+/* #include <sync/mutex.h> */
 /* #include <utils/attribute.h> */
 /* #include <utils/ansi.h> */
 #include <camkes.h>
@@ -46,7 +46,7 @@ static ps_io_ops_t io_ops;
 static getchar_client_t *getchar_client = NULL;
 
 
-static sync_mutex_t serial_mutex;
+/* static sync_mutex_t serial_mutex; */
 
 
 /* Forward declarations */
@@ -83,7 +83,7 @@ static void timer_callback(void *data)
     int UNUSED error;
     uint8_t c;
     uint8_t buffer[BUFFER_SIZE];
-    error = sync_mutex_lock(&serial_mutex);
+    error = serial_lock(); /* error = sync_mutex_lock(&serial_mutex); */
     // Flush input
     ssize_t read_count = plat_serial_read(buffer, BUFFER_SIZE, NULL, NULL);
     if (read_count > 0) {
@@ -95,7 +95,7 @@ static void timer_callback(void *data)
     while(sentinel_serial_buffer_get_next_char(getchar_client->tx_buffer, &c)) {
       plat_serial_putchar((int) c);
     }
-    error = sync_mutex_unlock(&serial_mutex);
+    error = serial_unlock(); /* error = sync_mutex_unlock(&serial_mutex); */
 }
 
 
@@ -115,7 +115,7 @@ int run_serial(void)
 
 void autopilot_serial_server_irq_handle(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
-    int error = sync_mutex_lock(&serial_mutex);
+    int error = serial_lock(); /* int error = sync_mutex_lock(&serial_mutex); */
     ZF_LOGF_IF(error, "APSS: Failed to lock mutex");
 
     plat_serial_interrupt(handle_char);
@@ -123,7 +123,7 @@ void autopilot_serial_server_irq_handle(void *data, ps_irq_acknowledge_fn_t ackn
     error = acknowledge_fn(ack_data);
     ZF_LOGF_IF(error, "APSS: Failed to acknowledge IRQ");
 
-    error = sync_mutex_unlock(&serial_mutex);
+    error = serial_unlock(); /* error = sync_mutex_unlock(&serial_mutex); */
     ZF_LOGF_IF(error, "APSS: Failed to unlock mutex");
 }
 
@@ -131,8 +131,8 @@ void autopilot_serial_server_irq_handle(void *data, ps_irq_acknowledge_fn_t ackn
 void pre_init(void)
 {
     int error;
-    sync_mutex_init(&serial_mutex, 1);
-    error = sync_mutex_lock(&serial_mutex);
+    /* sync_mutex_init(&serial_mutex, 1); */
+    error = serial_lock(); /* error = sync_mutex_lock(&serial_mutex); */
 
     error = camkes_io_ops(&io_ops);
     ZF_LOGF_IF(error, "Failed to initialise IO ops");
@@ -152,7 +152,7 @@ void pre_init(void)
     timeout_periodic(0, 500000000);
     */
     
-    error = sync_mutex_unlock(&serial_mutex);
+    error = serial_unlock(); /* error = sync_mutex_unlock(&serial_mutex); */
 }
 
 
