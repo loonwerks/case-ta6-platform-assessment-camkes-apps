@@ -128,7 +128,7 @@ void autopilot_serial_server_irq_handle(void *data, ps_irq_acknowledge_fn_t ackn
 }
 
 
-void pre_init(void)
+void serial_pre_init(void)
 {
     int error;
     /* sync_mutex_init(&serial_mutex, 1); */
@@ -145,6 +145,10 @@ void pre_init(void)
     getchar_client->rx_buffer = sentinel_serial_buffer_alloc();
     getchar_client->tx_buffer = sentinel_serial_buffer_alloc();
 
+    fprintf(stderr, "apss serial pre_init: rx_buffer %p, tx_buffer %p\n",
+	    getchar_client->rx_buffer, getchar_client->tx_buffer);
+    fflush(stdout);
+
     plat_post_init(&(io_ops.irq_ops));
     
     /* Start regular heartbeat of 500ms */
@@ -156,6 +160,6 @@ void pre_init(void)
 }
 
 
-void post_init(void)
+void serial_post_init(void)
 {
 }

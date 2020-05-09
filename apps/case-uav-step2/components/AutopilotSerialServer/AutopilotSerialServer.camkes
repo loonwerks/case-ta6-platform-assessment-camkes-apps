@@ -41,7 +41,7 @@ component AutopilotSerialServer {
 
 
     /* Size of the driver's heap */
-    attribute int heap_size = 16 * 1024;
+    attribute int heap_size = 512 * 1024;
 
     APSS_HARDWARE_SERIAL_INTERFACES
     APSS_HARDWARE_SERIAL_ATTRIBUTES

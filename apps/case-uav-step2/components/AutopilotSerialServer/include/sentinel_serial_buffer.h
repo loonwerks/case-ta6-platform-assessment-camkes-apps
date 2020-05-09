@@ -38,11 +38,6 @@
 
 
 typedef struct sentinel_serial_buffer {
-  /**
-   * multi-thread safety not implemented
-   * @param data
-   * @return 
-   */
   _Atomic counter_t write_counter;
   _Atomic counter_t read_counter;
   uint8_t data[SENTINEL_SERIAL_BUFFER_RING_SIZE];

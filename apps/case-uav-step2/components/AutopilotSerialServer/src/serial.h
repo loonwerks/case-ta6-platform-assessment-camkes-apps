@@ -15,6 +15,10 @@
 
 #include <sys/types.h>
 
+void serial_pre_init(void);
+
+void serial_post_init(void);
+
 ssize_t autopilot_serial_server_write_serial(void *data, size_t length);
 
 ssize_t autopilot_serial_server_read_serial(void *data, size_t length);

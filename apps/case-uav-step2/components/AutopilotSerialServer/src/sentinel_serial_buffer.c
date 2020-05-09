@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
@@ -35,20 +36,46 @@
 #define CHECKSUM_BUFFER_SIZE 32
 
 
-static const uint8_t serial_sentinel_before_payload_size[] = "+=+=+=+=";
+void ssb_hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen) {
+  static const char empty[] = "";
+  char *printables = malloc(max_line_len + 1);
+  printf("%s     |", prefix);
+  for (int index = 0; index < max_line_len; ++index) {
+    printf(" %02x", (uint8_t) index);
+  }
+  printf("\n%s-----|", prefix);
+  for (int index = 0; index < max_line_len; ++index) {
+    printf("---");
+  }
+  size_t offset = 0, line_offset = 0;
+  for (; line_offset < datalen; line_offset += max_line_len) {
+    printf("\n%s%04x |", prefix, (uint16_t) line_offset);
+    if (printables != NULL) memset(printables, 0, max_line_len + 1);
+    for (; offset < datalen && offset < line_offset + max_line_len; ++offset) {
+      printf(" %02x", data[offset]);
+      if (printables != NULL) printables[offset - line_offset] = ((isprint(data[offset])) ? data[offset] : '.');
+    }
+    if (printables != NULL) printf("  %s", printables);
+  }
+  printf("\n");
+  if (printables != NULL) free(printables);
+}
 
 
-static const uint8_t serial_sentinel_after_payload_size[] = "#@#@#@#@";
+static const uint8_t serial_sentinel_before_payload_size[] = { '+', '=', '+', '=', '+', '=', '+', '=' };
 
 
-static const uint8_t serial_sentinel_before_checksum[] = "!%!%!%!%";
+static const uint8_t serial_sentinel_after_payload_size[] = { '#', '@', '#', '@', '#', '@', '#', '@' };
 
 
-static const uint8_t serial_sentinel_after_checksum[] = "?^?^?^?^";
+static const uint8_t serial_sentinel_before_checksum[] = { '!', '%', '!', '%', '!', '%', '!', '%' };
+
+
+static const uint8_t serial_sentinel_after_checksum[] = { '?', '^', '?', '^', '?', '^', '?', '^' };
 
 
 struct sentinel_serial_buffer *sentinel_serial_buffer_alloc() {
-  return calloc(1, sizeof(struct sentinel_serial_buffer));
+  return (struct sentinel_serial_buffer *) calloc(1, sizeof(struct sentinel_serial_buffer));
 }
 
 
@@ -69,7 +96,7 @@ uint32_t sentinel_serial_buffer_calculate_checksum(const uint8_t *buffer, size_t
 bool sentinel_serial_buffer_sentinelize_string(uint8_t *dest_buffer, size_t dest_size,
 					       const uint8_t *src_buffer, size_t length) {
   uint8_t payload_size_buffer[32] = { 0 };
-  snprintf((char *) payload_size_buffer, sizeof(payload_size_buffer), "%z", length);
+  snprintf((char *) payload_size_buffer, sizeof(payload_size_buffer), "%zu", length);
   size_t payload_size_length = strnlen(payload_size_buffer, sizeof(payload_size_buffer));
 
   uint8_t payload_checksum_buffer[32] = { 0 };
@@ -124,6 +151,11 @@ bool sentinel_serial_buffer_sentinelize_string(uint8_t *dest_buffer, size_t dest
     }
 
     return true;
+
+  } else {
+    fprintf(stdout, "apss ssb se str: payload too large: payload %zu, sentinalized %zu, buffer %zu\n",
+	    length, sentinelized_length, dest_size);
+    fflush(stdout);
   }
 
   return false;
@@ -133,7 +165,7 @@ bool sentinel_serial_buffer_sentinelize_string(uint8_t *dest_buffer, size_t dest
 bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_buffer *ctx,
 						       const uint8_t *buffer, size_t length) {
   uint8_t payload_size_buffer[32] = { 0 };
-  snprintf((char *) payload_size_buffer, sizeof(payload_size_buffer), "%z", length);
+  snprintf((char *) payload_size_buffer, sizeof(payload_size_buffer), "%zu", length);
   size_t payload_size_length = strnlen(payload_size_buffer, sizeof(payload_size_buffer));
 
   uint8_t payload_checksum_buffer[32] = { 0 };
@@ -150,16 +182,17 @@ bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_bu
     + sizeof(serial_sentinel_after_checksum);
 
   counter_t read_counter = ctx->read_counter;
+  counter_t *p_write_counter = (counter_t *) &(ctx->write_counter);
+
   // Acquire memory fence - ensure read of ctx->read_counter BEFORE reading data  
   __atomic_thread_fence(__ATOMIC_ACQUIRE);
-  size_t capacity_remaining = (ctx->write_counter + SENTINEL_SERIAL_BUFFER_RING_SIZE - read_counter)
-    % SENTINEL_SERIAL_BUFFER_RING_SIZE;
+  size_t capacity_remaining = SENTINEL_SERIAL_BUFFER_RING_SIZE - (ctx->write_counter - read_counter);
 
   // Strictly less because one element is always considered "dirty"
   if (sentinelized_length < capacity_remaining) {
+    counter_t write_index = ctx->write_counter;
 
     // Sentinel before payload size
-    counter_t write_index = ctx->write_counter;
     for (size_t index = 0; index < sizeof(serial_sentinel_before_payload_size); ++index, ++write_index) {
       ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = serial_sentinel_before_payload_size[index];
     }
@@ -174,7 +207,7 @@ bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_bu
       ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = serial_sentinel_after_payload_size[index];
     }
 
-      // Data payload
+    // Data payload
     for (size_t index = 0; index < length; ++index, ++write_index) {
       ctx->data[write_index % SENTINEL_SERIAL_BUFFER_RING_SIZE] = buffer[index];
     }
@@ -196,9 +229,14 @@ bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_bu
 
     // Release memory fence - ensure that data write above completes BEFORE we advance ctx->write_counter
     __atomic_thread_fence(__ATOMIC_RELEASE);
-    ctx->write_counter = write_index;
+    *p_write_counter = write_index;
 
     return true;
+
+  } else {
+    fprintf(stdout, "apss ssb append se str: payload too large: payload %zu, sentinalized %zu, remaining %zu\n",
+	    length, sentinelized_length, capacity_remaining);
+    fflush(stdout);
   }
 
   return false;
@@ -206,17 +244,17 @@ bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_bu
 
 
 bool sentinel_serial_buffer_append_char(struct sentinel_serial_buffer *ctx, uint8_t c) {
+  counter_t *p_write_counter = (counter_t *) &(ctx->write_counter);
   counter_t read_counter = ctx->read_counter;
   // Acquire memory fence - ensure read of ctx->read_counter BEFORE reading data  
   __atomic_thread_fence(__ATOMIC_ACQUIRE);
-  size_t capacity_remaining = (ctx->write_counter + SENTINEL_SERIAL_BUFFER_RING_SIZE - read_counter)
-    % SENTINEL_SERIAL_BUFFER_RING_SIZE;
+  size_t capacity_remaining = SENTINEL_SERIAL_BUFFER_RING_SIZE - (*p_write_counter - read_counter);
   // Strictly less because one element is always considered "dirty"
   if (1 < capacity_remaining) {
     ctx->data[ctx->write_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE];
     // Release memory fence - ensure that data write above completes BEFORE we advance ctx->write_counter
     __atomic_thread_fence(__ATOMIC_RELEASE);
-    ++(ctx->write_counter);
+    ++(*p_write_counter);
     return true;
   }
   return false;
@@ -229,25 +267,24 @@ bool sentinel_serial_buffer_find_sentinel_in_ring(const uint8_t *buffer, size_t 
 						  counter_t *position) {
   int found = false;
   counter_t search_counter = read_counter + *position;
-  while (!found) {
-    // if we've traversed the whole buffer without finding the sentinel, quit
-    if (search_counter == write_counter) {
-      break;
-    }
 
+  /*
+  fprintf(stdout, "apss ssb find: buffer %p, sz %zu, read %llu, write %llu, sentinel %p, len %zu, pos %llu\n",
+	  buffer, buffer_size, read_counter, write_counter, sentinel, sentinel_length, *position);
+  ssb_hexdump("    ", 32, buffer, 1024);
+  fflush(stdout);
+  */
+  
+  for (; !found && search_counter < write_counter; ++search_counter) {
     for (counter_t symbols_found = 0;
-	 symbols_found < sentinel_length
-	   && sentinel[symbols_found] == buffer[(search_counter + symbols_found) % buffer_size];
-	 ++symbols_found) {
+	 !found && search_counter < write_counter && symbols_found < sentinel_length
+	   && sentinel[symbols_found] == buffer[(search_counter + symbols_found) % buffer_size]; ) {
+      ++symbols_found;
       if (symbols_found == sentinel_length) {
 	*position = search_counter - read_counter;
 	found = true;
-	break;
       }
     }
-    
-    // advance the search counter
-    ++search_counter;
   }
 
   return found;
@@ -324,12 +361,24 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
 						       uint8_t *buffer, size_t buffer_size) {
   ssize_t result = 0;
 
+  /*
+  fprintf(stdout, "apss ssb get payload: ctx %p, buffer %p, sz %zu\n", ctx, buffer, buffer_size);
+  ssb_hexdump("    ", 32, &ctx->data[0], 1024);
+  fflush(stdout);
+  */
+  
   // Get a copy of write_counter so we can see if it changes durring read
+  counter_t *p_read_counter = (counter_t *) &(ctx->read_counter);
   counter_t original_write_counter = ctx->write_counter;
   // Acquire memory fence - ensure read of ctx->write_counter BEFORE reading data
   __atomic_thread_fence(__ATOMIC_ACQUIRE);
-  counter_t original_read_counter = ctx->read_counter;
+  counter_t original_read_counter = *p_read_counter;
 
+  /*
+  fprintf(stdout, "apss ssb get payload: write %llu, read %llu\n", original_write_counter, original_read_counter);
+  fflush(stdout);
+  */
+  
   counter_t before_payload_size_offset = 0;
   if (!sentinel_serial_buffer_find_sentinel_in_ring(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
 						    original_read_counter, original_write_counter,
@@ -370,11 +419,20 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
     return -1;
   }
 
+  /*
+  fprintf(stdout, "apss ssb get payload: b-zs %llu, a-sz %llu, b-csum %llu, a-csum %llu\n",
+	  before_payload_size_offset, after_payload_size_offset, before_checksum_offset, after_checksum_offset);
+  fflush(stdout);
+  */
+  
   size_t payload_size =
     (size_t) sentinel_serial_buffer_ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
 						 original_read_counter
 						 + before_payload_size_offset + sizeof(serial_sentinel_before_payload_size),
-						 after_payload_size_offset);
+						 original_read_counter + after_payload_size_offset);
+  fprintf(stdout, "apss ssb get payload: payload size %zu, errno %d: %s\n",
+	  payload_size, errno, strerror(errno));
+  fflush(stdout);
   if (errno) {
     errno = EINVAL;
     return -1;
@@ -384,7 +442,12 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
     (size_t) sentinel_serial_buffer_ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
 						 original_read_counter
 						 + before_checksum_offset + sizeof(serial_sentinel_before_checksum),
-						 after_checksum_offset);
+						 original_read_counter + after_checksum_offset);
+  /*
+  fprintf(stdout, "apss ssb get payload: expected checksum %lu, errno %d: %s\n",
+	  expected_checksum, errno, strerror(errno));
+  fflush(stdout);
+  */
   if (errno) {
     errno = EIO;
     return -1;
@@ -397,20 +460,27 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
 
   for (counter_t index = 0; index < payload_size; ++index) {
     buffer[index] =
-      ctx->data[(original_read_counter + after_payload_size_offset + sizeof(serial_sentinel_after_payload_size + index))
+      ctx->data[(original_read_counter + after_payload_size_offset + sizeof(serial_sentinel_after_payload_size) + index)
 		% SENTINEL_SERIAL_BUFFER_RING_SIZE];
   }
 
   // Release memory fence - ensure copy operation complete BEFORE updating read counter
   __atomic_thread_fence(__ATOMIC_RELEASE);
-  ctx->read_counter = original_read_counter + after_checksum_offset + sizeof(serial_sentinel_after_checksum);
+  *p_read_counter = original_read_counter + after_checksum_offset + sizeof(serial_sentinel_after_checksum);
 
   uint32_t computed_checksum = sentinel_serial_buffer_calculate_checksum(buffer, payload_size);
+  /*
+  fprintf(stdout, "apss ssb get payload: computed checksum %lu, errno %d: %s\n",
+	  computed_checksum, errno, strerror(errno));
+  fflush(stdout);
+  ssb_hexdump("    ", 32, buffer, payload_size);
+  */
   if (expected_checksum != computed_checksum) {
     errno = EIO;
     return -1;
   }
 
+  errno = 0;
   return payload_size;
 }
 
@@ -419,17 +489,18 @@ bool sentinel_serial_buffer_get_next_char(struct sentinel_serial_buffer *ctx, ui
   bool result = false;
 
   // Get a copy of write_counter so we can see if it changes durring read
+  counter_t *p_read_counter = (counter_t *) &(ctx->read_counter);
   counter_t original_write_counter = ctx->write_counter;
   // Acquire memory fence - ensure read of ctx->write_counter BEFORE reading data
   __atomic_thread_fence(__ATOMIC_ACQUIRE);
-  counter_t original_read_counter = ctx->read_counter;
+  counter_t original_read_counter = *p_read_counter;
 
   if (original_write_counter > original_read_counter) {
     *c = ctx->data[original_read_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE];
     
     // Release memory fence - ensure copy operation complete BEFORE updating read counter
     __atomic_thread_fence(__ATOMIC_RELEASE);
-    ctx->read_counter = original_read_counter + 1;
+    *p_read_counter = original_read_counter + 1;
 
     return true;
   }

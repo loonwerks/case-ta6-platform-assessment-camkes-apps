@@ -2,20 +2,25 @@
  * Copyright 2020, Collins Aerospace
  */
 
-#include <camkes.h>
+#include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <sel4/sel4.h>
 #include <stdlib.h>
 
+#include <camkes.h>
+#include <sel4/sel4.h>
 #include <counter.h>
 #include <data.h>
 #include <queue.h>
 
 #include "serial.h"
+#include "sentinel_serial_buffer.h"
 
 
 void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen) {
+  static const char empty[] = "";
+  char *printables = malloc(max_line_len + 1);
   printf("%s     |", prefix);
   for (int index = 0; index < max_line_len; ++index) {
     printf(" %02x", (uint8_t) index);
@@ -27,11 +32,15 @@ void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_
   size_t offset = 0, line_offset = 0;
   for (; line_offset < datalen; line_offset += max_line_len) {
     printf("\n%s%04x |", prefix, (uint16_t) line_offset);
+    if (printables != NULL) memset(printables, 0, max_line_len + 1);
     for (; offset < datalen && offset < line_offset + max_line_len; ++offset) {
       printf(" %02x", data[offset]);
+      if (printables != NULL) printables[offset - line_offset] = ((isprint(data[offset])) ? data[offset] : '.');
     }
+    if (printables != NULL) printf("  %s", printables);
   }
   printf("\n");
+  if (printables != NULL) free(printables);
 }
 
 
@@ -78,7 +87,6 @@ size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)
 // "mission_command_in".
 void mission_command_in_event_data_receive(counter_t numDropped, data_t *data) {
   printf("%s: received mission command: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
-  hexdump("    ", 32, data->payload, sizeof(data->payload));
 }
 
 //------------------------------------------------------------------------------
@@ -152,8 +160,14 @@ void air_vehicle_state_out_2_event_data_send(data_t *data) {
 //------------------------------------------------------------------------------
 // Testing
 
+void pre_init(void) {
+  printf("%s: pre init apss\n", get_instance_name());
+  serial_pre_init();
+}
+
 void post_init(void) {
-  printf("%s: post init queue\n", get_instance_name());
+  printf("%s: post init apss\n", get_instance_name());
+  serial_post_init();
   queue_init(air_vehicle_state_out_1_queue);
   queue_init(air_vehicle_state_out_2_queue);
   recv_queue_init(&missionCommandInRecvQueue, mission_command_in_queue);
@@ -210,34 +224,99 @@ static const char message[] = {
 #endif
 };
 
+
+
+
 int run(void) {
 
   counter_t numDropped;
   data_t data;
 
+  // Busy loop to slow things down
+  for (unsigned int j = 0; j < 20000000; ++j) {
+    seL4_Yield();
+  }
+
+
+  // Test the sentinel serial buffer
+  {
+    const size_t max_message_length = 4096;
+    bool result;
+    ssize_t decode_length;
+    int compare_result;
+      
+    sentinel_serial_buffer_t *ssb = sentinel_serial_buffer_alloc();
+    uint8_t *decoded_message = calloc(max_message_length, sizeof(uint8_t));
+
+    result = sentinel_serial_buffer_append_sentinelized_string(ssb, &message[0], sizeof(message));
+    fprintf(stdout, "apss: ssb test append returned %d\n", (int) result);  fflush(stdout);
+
+    result = sentinel_serial_buffer_append_sentinelized_string(ssb, &message[0], sizeof(message));
+    fprintf(stdout, "apss: ssb test append 2 returned %d\n", (int) result); fflush(stdout);
+
+    decode_length = sentinel_serial_buffer_get_next_payload_string(ssb, &decoded_message[0], max_message_length);
+    if (decode_length > 0) {
+      compare_result = strncmp((const char *) message, (const char *) decoded_message, sizeof(message));
+      fprintf(stdout, "apss: ssb test decode returned %zd octets, compare returned %d\n",
+	      decode_length, compare_result); fflush(stdout);
+    } else {
+      fprintf(stdout, "apss: ssb test decode returned %zd: %s\n",
+	      decode_length, strerror(errno));
+    }
+
+    decode_length = sentinel_serial_buffer_get_next_payload_string(ssb, &decoded_message[0], max_message_length);
+    if (decode_length > 0) {
+      compare_result = strncmp((const char *) message, (const char *) decoded_message, sizeof(message));
+      fprintf(stdout, "apss: ssb test decode 2 returned %zd octets, compare returned %d\n",
+	      decode_length, compare_result); fflush(stdout);
+    } else {
+      fprintf(stdout, "apss: ssb test decode 2 returned %zd: %s\n",
+	      decode_length, strerror(errno));
+    }
+
+    free(decoded_message);
+    sentinel_serial_buffer_free(ssb);
+  }
+    
   while (1) {
 
     // Busy loop to slow things down
-    for(unsigned int j = 0; j < 1000000; ++j){
+    for (unsigned int j = 0; j < 1000; ++j) {
 
       // Poll and handle mission command input port
       bool dataReceived = mission_command_in_event_data_poll(&numDropped, &data);
+
       if (dataReceived) {
+	
 	mission_command_in_event_data_receive(numDropped, &data);
+
 	size_t message_size = compute_addr_attr_lmcp_message_size(&data.payload[0], sizeof(data.payload));
+
 	if (message_size > 0) {
+	  fprintf(stdout, "apss: received mission command message of %zu octets\n", message_size);  fflush(stdout);
+	  hexdump("    ", 32, &data.payload[0], message_size);    
 	  autopilot_serial_server_write_serial(&data.payload[0], message_size);
 	}
       }
 
       // Poll and handle serial receive
       ssize_t received_size = autopilot_serial_server_read_serial((void *) &data.payload[0], sizeof(data.payload));
+
       if (received_size > 0) {
+	fprintf(stdout, "apss: received serial message of %zu octets\n", received_size);  fflush(stdout);
+	hexdump("    ", 32, &data.payload[0], received_size);    
 	// TODO: Check that received data is an Air Vehicle State message and discard others
 	air_vehicle_state_out_1_event_data_send(&data);
 	air_vehicle_state_out_2_event_data_send(&data);
       }
+
       seL4_Yield();
+
+      // Busy loop to slow things down
+      for (unsigned int n = 0; n < 1000; ++n) {
+	seL4_Yield();
+      }
+
     }
 
     // Stage data
@@ -247,6 +326,7 @@ int run(void) {
     // Send the data
     air_vehicle_state_out_1_event_data_send(&data);
     air_vehicle_state_out_2_event_data_send(&data);
+    autopilot_serial_server_write_serial(&data.payload[0], sizeof(message));
   }
 }
 
