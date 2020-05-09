@@ -14,34 +14,9 @@
 #include <data.h>
 #include <queue.h>
 
+#include "hexdump.h"
 #include "serial.h"
 #include "sentinel_serial_buffer.h"
-
-
-void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen) {
-  static const char empty[] = "";
-  char *printables = malloc(max_line_len + 1);
-  printf("%s     |", prefix);
-  for (int index = 0; index < max_line_len; ++index) {
-    printf(" %02x", (uint8_t) index);
-  }
-  printf("\n%s-----|", prefix);
-  for (int index = 0; index < max_line_len; ++index) {
-    printf("---");
-  }
-  size_t offset = 0, line_offset = 0;
-  for (; line_offset < datalen; line_offset += max_line_len) {
-    printf("\n%s%04x |", prefix, (uint16_t) line_offset);
-    if (printables != NULL) memset(printables, 0, max_line_len + 1);
-    for (; offset < datalen && offset < line_offset + max_line_len; ++offset) {
-      printf(" %02x", data[offset]);
-      if (printables != NULL) printables[offset - line_offset] = ((isprint(data[offset])) ? data[offset] : '.');
-    }
-    if (printables != NULL) printf("  %s", printables);
-  }
-  printf("\n");
-  if (printables != NULL) free(printables);
-}
 
 
 size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)

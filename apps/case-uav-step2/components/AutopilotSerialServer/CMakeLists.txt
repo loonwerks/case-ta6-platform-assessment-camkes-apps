@@ -40,6 +40,7 @@ DeclareCAmkESComponent(
     INCLUDES
     include
     LIBS
+    hexdump
     queue
 )
 

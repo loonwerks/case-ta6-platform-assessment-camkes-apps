@@ -7,6 +7,7 @@
 #include <sys/types.h>
 
 #include "counter.h"
+#include "hexdump.h"
 #include "sentinel_serial_buffer.h"
 
 
@@ -34,32 +35,6 @@
 
 #define PAYLOAD_SIZE_BUFFER_SIZE 32
 #define CHECKSUM_BUFFER_SIZE 32
-
-
-void ssb_hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen) {
-  static const char empty[] = "";
-  char *printables = malloc(max_line_len + 1);
-  printf("%s     |", prefix);
-  for (int index = 0; index < max_line_len; ++index) {
-    printf(" %02x", (uint8_t) index);
-  }
-  printf("\n%s-----|", prefix);
-  for (int index = 0; index < max_line_len; ++index) {
-    printf("---");
-  }
-  size_t offset = 0, line_offset = 0;
-  for (; line_offset < datalen; line_offset += max_line_len) {
-    printf("\n%s%04x |", prefix, (uint16_t) line_offset);
-    if (printables != NULL) memset(printables, 0, max_line_len + 1);
-    for (; offset < datalen && offset < line_offset + max_line_len; ++offset) {
-      printf(" %02x", data[offset]);
-      if (printables != NULL) printables[offset - line_offset] = ((isprint(data[offset])) ? data[offset] : '.');
-    }
-    if (printables != NULL) printf("  %s", printables);
-  }
-  printf("\n");
-  if (printables != NULL) free(printables);
-}
 
 
 static const uint8_t serial_sentinel_before_payload_size[] = { '+', '=', '+', '=', '+', '=', '+', '=' };
@@ -271,7 +246,7 @@ bool sentinel_serial_buffer_find_sentinel_in_ring(const uint8_t *buffer, size_t 
   /*
   fprintf(stdout, "apss ssb find: buffer %p, sz %zu, read %llu, write %llu, sentinel %p, len %zu, pos %llu\n",
 	  buffer, buffer_size, read_counter, write_counter, sentinel, sentinel_length, *position);
-  ssb_hexdump("    ", 32, buffer, 1024);
+  hexdump("    ", 32, buffer, 1024);
   fflush(stdout);
   */
   
@@ -363,7 +338,7 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
 
   /*
   fprintf(stdout, "apss ssb get payload: ctx %p, buffer %p, sz %zu\n", ctx, buffer, buffer_size);
-  ssb_hexdump("    ", 32, &ctx->data[0], 1024);
+  hexdump("    ", 32, &ctx->data[0], 1024);
   fflush(stdout);
   */
   
@@ -473,7 +448,7 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
   fprintf(stdout, "apss ssb get payload: computed checksum %lu, errno %d: %s\n",
 	  computed_checksum, errno, strerror(errno));
   fflush(stdout);
-  ssb_hexdump("    ", 32, buffer, payload_size);
+  hexdump("    ", 32, buffer, payload_size);
   */
   if (expected_checksum != computed_checksum) {
     errno = EIO;

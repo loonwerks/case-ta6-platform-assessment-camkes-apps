@@ -16,6 +16,9 @@ cmake_minimum_required(VERSION 3.7.2)
 project(ComponentWaypointManager C)
 
 DeclareCAmkESComponent(WaypointManager
-    SOURCES src/waypoint_manager.c
-    LIBS queue
+    SOURCES
+    src/waypoint_manager.c
+    LIBS
+    hexdump
+    queue
 )

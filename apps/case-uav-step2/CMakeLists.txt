@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(case-uav-step2 C)
 
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/hexdump)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/queue)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/AutopilotSerialServer)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/WaypointManager)
