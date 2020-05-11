@@ -405,9 +405,11 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
 						 original_read_counter
 						 + before_payload_size_offset + sizeof(serial_sentinel_before_payload_size),
 						 original_read_counter + after_payload_size_offset);
+  /*
   fprintf(stdout, "apss ssb get payload: payload size %zu, errno %d: %s\n",
 	  payload_size, errno, strerror(errno));
   fflush(stdout);
+  */
   if (errno) {
     errno = EINVAL;
     return -1;
