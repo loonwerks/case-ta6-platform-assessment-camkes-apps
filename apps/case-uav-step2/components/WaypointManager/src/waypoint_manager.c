@@ -14,28 +14,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include "hexdump.h"
+
 // Forward declarations
 int send_mission_command(void);
-
-
-void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen) {
-    printf("%s     |", prefix);
-    for (int index = 0; index < max_line_len; ++index) {
-        printf(" %02x", (uint8_t) index);
-    }
-    printf("\n%s-----|", prefix);
-    for (int index = 0; index < max_line_len; ++index) {
-        printf("---");
-    }
-    size_t offset = 0, line_offset = 0;
-    for (; line_offset < datalen; line_offset += max_line_len) {
-        printf("\n%s%04x |", prefix, (uint16_t) line_offset);
-        for (; offset < datalen && offset < line_offset + max_line_len; ++offset) {
-            printf(" %02x", data[offset]);
-        }
-    }
-    printf("\n");
-}
 
 
 //------------------------------------------------------------------------------
@@ -43,7 +25,7 @@ void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_
 // "p1_in".
 void air_vehicle_state_in_event_data_receive(counter_t numDropped, data_t *data) {
     printf("%s: received air vehicle state: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
-    hexdump("    ", 32, data->payload, sizeof(data->payload));
+    // hexdump("    ", 32, data->payload, sizeof(data->payload));
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +68,7 @@ bool air_vehicle_state_in_event_data_poll(counter_t *numDropped, data_t *data) {
 // "automation_response_in".
 void automation_response_in_event_data_receive(counter_t numDropped, data_t *data) {
     printf("%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
-    hexdump("    ", 32, data->payload, sizeof(data->payload));
+    // hexdump("    ", 32, data->payload, sizeof(data->payload));
     // For testing, whenever we receive an automation response, send a mission command
     send_mission_command();
 }
@@ -151,7 +133,16 @@ void mission_command_out_event_data_send(data_t *data) {
 
 
 static const char message[] = {
-// TODO: need Mission Command message
+// TODO: This message is BOGUS... Fix it.
+  0x61,0x66,0x72,0x6C,0x2E,0x63,0x6D,0x61,0x73,0x69,0x2E,0x4D,0x69,0x73,0x73,0x69,  /* afrl:cmasi:Missi */
+  0x6F,0x6E,0x43,0x6F,0x6D,0x6D,0x61,0x6E,0x6D,0x24,0x6C,0x6D,0x63,0x70,0x7C,0x61,  /* onCommand$lmcp|a */
+  0x66,0x72,0x6C,0x2E,0x63,0x6D,0x61,0x73,0x69,0x2E,0x4D,0x69,0x73,0x73,0x69,0x6F,  /* frl:cmasi:Missio */
+  0x6E,0x43,0x6F,0x6D,0x6D,0x61,0x6E,0x64,0x7C,0x54,0x63,0x70,0x42,0x72,0x69,0x64,  /* nCommand|6?p*rid */
+  0x67,0x65,0x7C,0x34,0x30,0x30,0x7C,0x36,0x38,0x24,0x4C,0x4D,0x43,0x50,0x00,0x00,  /* ge|400|68$LMCP.. */
+  0x00,0x2B,0x01,0x43,0x4D,0x41,0x53,0x49,0x00,0x00,0x00,0x00,0x00,0x00,0x27,0x00,  /* .+.CMASI......'. */
+  0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x50,0x00,0x01,0x00,0x00,0x00,0x00,0x00,  /* ........P....... */
+  0x00,0x01,0x4E,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x4F,0x00,0x00,0x03,  /* ..N.........O... */
+  0xE1                                                                              /* .                */
 };
 
 
