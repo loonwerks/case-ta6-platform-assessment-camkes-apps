@@ -61,12 +61,10 @@ assembly {
     }
     configuration {
 
-        /*
         cross_vm_conn_1.size = 16384;
         cross_vm_conn_2.size = 16384;
         cross_vm_conn_3.size = 16384;
         cross_vm_conn_4.size = 16384;
-        */
 
         autopilot_serial_server.mission_command_in_queue_access = "R";
         autopilot_serial_server.mission_command_in_SendEvent_domain = 1;
