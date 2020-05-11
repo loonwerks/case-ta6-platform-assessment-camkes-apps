@@ -26,18 +26,21 @@ size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)
 
   void *end_of_address_delim = memchr(buffer, addr_attr_delim, buffer_length);
   if (end_of_address_delim == NULL) {
+    errno = -1;
     return 0;
   }
   ssize_t end_of_address_delim_offset = end_of_address_delim - buffer;
   
-  void *end_of_attr_delim = memchr(end_of_address_delim, addr_attr_delim, buffer_length - end_of_address_delim_offset);
+  void *end_of_attr_delim = memchr(end_of_address_delim + 1, addr_attr_delim, buffer_length - end_of_address_delim_offset - 1);
   if (end_of_attr_delim == NULL) {
+    errno = -2;
     return 0;
   }
   ssize_t end_of_attr_delim_offset = end_of_attr_delim - buffer;
   
-  void *end_of_message_delim = memchr(end_of_attr_delim, addr_attr_delim, buffer_length - end_of_attr_delim_offset);
+  void *end_of_message_delim = memchr(end_of_attr_delim + 1, addr_attr_delim, buffer_length - end_of_attr_delim_offset - 1);
   if (end_of_message_delim == NULL || end_of_message_delim == buffer + buffer_length - 1) {
+    errno = -3;
     return 0;
   }
   
@@ -50,10 +53,14 @@ size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)
     + ((size_t) lmcp_message_size_pos[2] <<  8)
     + ((size_t) lmcp_message_size_pos[3] <<  0);
     
-  if (buffer + buffer_length < (void *) lmcp_message_size_pos + lmcp_message_size + checksum_size) {
+  if (buffer + buffer_length < ((void *) lmcp_message_size_pos) + lmcp_message_size + checksum_size) {
+    fprintf(stdout, "apss: compute_addr_attr_lmcp_message_size: EoAddr %zu, EoAttr %zu, LMCP sz %zu\n",
+	    end_of_address_delim_offset, end_of_attr_delim_offset, lmcp_message_size); fflush(stdout);
+    errno = -4;
     return 0;
   }
-    
+
+  errno = 0;
   return ((size_t) ((void *) lmcp_message_size_pos - buffer)) + lmcp_control_string_size + lmcp_message_size + checksum_size;
 }
 
@@ -61,7 +68,8 @@ size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "mission_command_in".
 void mission_command_in_event_data_receive(counter_t numDropped, data_t *data) {
-  printf("%s: received mission command: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+  fprintf(stdout, "%s: received mission command: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+  fflush(stdout);
 }
 
 //------------------------------------------------------------------------------
@@ -200,6 +208,7 @@ static const char message[] = {
 };
 
 
+#define DUMP_SIZE 64
 
 
 int run(void) {
@@ -208,7 +217,7 @@ int run(void) {
   data_t data;
 
   // Busy loop to slow things down
-  for (unsigned int j = 0; j < 20000000; ++j) {
+  for (unsigned int j = 0; j < 10000000; ++j) {
     seL4_Yield();
   }
 
@@ -269,9 +278,13 @@ int run(void) {
 
 	if (message_size > 0) {
 	  fprintf(stdout, "apss: received mission command message of %zu octets\n", message_size);  fflush(stdout);
-	  hexdump("    ", 32, &data.payload[0], message_size);    
+	  hexdump("    ", 32, &data.payload[0], (message_size > DUMP_SIZE) ? DUMP_SIZE : message_size);
 	  autopilot_serial_server_write_serial(&data.payload[0], message_size);
+	} else {
+	  fprintf(stdout, "apss: received mission command message, decode errno result %d\n", errno);  fflush(stdout);
+	  hexdump("    ", 32, &data.payload[0], (message_size > DUMP_SIZE) ? DUMP_SIZE : sizeof(data.payload));
 	}
+	
       }
 
       // Poll and handle serial receive
@@ -279,10 +292,17 @@ int run(void) {
 
       if (received_size > 0) {
 	fprintf(stdout, "apss: received serial message of %zu octets\n", received_size);  fflush(stdout);
-	hexdump("    ", 32, &data.payload[0], received_size);    
+	hexdump("    ", 32, &data.payload[0], (received_size> DUMP_SIZE) ? DUMP_SIZE : received_size);    
 	// TODO: Check that received data is an Air Vehicle State message and discard others
 	air_vehicle_state_out_1_event_data_send(&data);
 	air_vehicle_state_out_2_event_data_send(&data);
+      } else {
+	if (errno != EAGAIN) {
+	  char strerror_buf[256];
+	  fprintf(stdout, "apss: serial receive error %d: %s\n",
+		  errno, strerror_r(errno, &strerror_buf[0], sizeof(strerror_buf)));
+	  fflush(stdout);
+	}
       }
 
       seL4_Yield();
@@ -295,13 +315,13 @@ int run(void) {
     }
 
     // Stage data
-    memcpy((void *) &data.payload[0], (const void *) &message[0], sizeof(message));
-    printf("%s: sending: %d\n", get_instance_name(), sizeof(message));
+    // memcpy((void *) &data.payload[0], (const void *) &message[0], sizeof(message));
+    // fprintf(stdout, "%s: sending: %d\n", get_instance_name(), sizeof(message));
 
     // Send the data
-    air_vehicle_state_out_1_event_data_send(&data);
-    air_vehicle_state_out_2_event_data_send(&data);
-    autopilot_serial_server_write_serial(&data.payload[0], sizeof(message));
+    // air_vehicle_state_out_1_event_data_send(&data);
+    // air_vehicle_state_out_2_event_data_send(&data);
+    // autopilot_serial_server_write_serial(&data.payload[0], sizeof(message));
   }
 }
 
