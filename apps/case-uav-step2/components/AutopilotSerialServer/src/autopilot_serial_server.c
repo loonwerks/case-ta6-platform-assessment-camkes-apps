@@ -291,8 +291,8 @@ int run(void) {
       ssize_t received_size = autopilot_serial_server_read_serial((void *) &data.payload[0], sizeof(data.payload));
 
       if (received_size > 0) {
-	fprintf(stdout, "apss: received serial message of %zu octets\n", received_size);  fflush(stdout);
-	hexdump("    ", 32, &data.payload[0], (received_size> DUMP_SIZE) ? DUMP_SIZE : received_size);    
+	// fprintf(stdout, "apss: received serial message of %zu octets\n", received_size);  fflush(stdout);
+	// hexdump("    ", 32, &data.payload[0], (received_size> DUMP_SIZE) ? DUMP_SIZE : received_size);    
 	// TODO: Check that received data is an Air Vehicle State message and discard others
 	air_vehicle_state_out_1_event_data_send(&data);
 	air_vehicle_state_out_2_event_data_send(&data);
