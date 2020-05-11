@@ -29,7 +29,6 @@
     -->
     <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio1" />
     <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio0">
-        <SubscribeToMessage MessageType="afrl.cmasi.AirVehicleState"/>
         <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
         <SubscribeToMessage MessageType="afrl.cmasi.MissionCommand"/>
         <SubscribeToMessage MessageType="afrl.cmasi.VehicleActionCommand"/>
@@ -40,8 +39,6 @@
         <SubscribeToMessage MessageType="afrl.cmasi.KeepInZone"/>
         <SubscribeToMessage MessageType="afrl.cmasi.KeepOutZone"/>
         <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask" />
-        <SubscribeToMessage MessageType="afrl.cmasi.MissionCommand" />
-        <SubscribeToMessage MessageType="afrl.cmasi.VehicleActionCommand" />
     </Bridge>
 
     <Service Type="StatusReportService" VehicleID="400" />
