@@ -11,7 +11,7 @@
 #include <sys/types.h>
 
 
-void fhexdump(int fd, const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen);
+void fhexdump(FILE *stream, const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen);
 
 
 void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen);
