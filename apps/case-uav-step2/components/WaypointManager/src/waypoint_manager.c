@@ -17,7 +17,8 @@
 #include "hexdump.h"
 
 // Forward declarations
-int send_mission_command(void);
+/* int send_mission_command(void); */
+void mission_command_out_event_data_send(data_t *data);
 
 
 //------------------------------------------------------------------------------
@@ -69,8 +70,8 @@ bool air_vehicle_state_in_event_data_poll(counter_t *numDropped, data_t *data) {
 void automation_response_in_event_data_receive(counter_t numDropped, data_t *data) {
     printf("%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
-    // For testing, whenever we receive an automation response, send a mission command
-    send_mission_command();
+    // For testing, whenever we receive an automation response, send it out on the mission command out port
+    mission_command_out_event_data_send(data);
 }
 
 //------------------------------------------------------------------------------
@@ -146,6 +147,7 @@ static const char message[] = {
 };
 
 
+/*
 int send_mission_command(void) {
     data_t data;
 
@@ -156,6 +158,7 @@ int send_mission_command(void) {
     // Send the data
     mission_command_out_event_data_send(&data);          
 }
+*/
 
 //---
 
