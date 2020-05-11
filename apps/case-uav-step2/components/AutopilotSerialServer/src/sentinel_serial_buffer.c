@@ -226,7 +226,7 @@ bool sentinel_serial_buffer_append_char(struct sentinel_serial_buffer *ctx, uint
   size_t capacity_remaining = SENTINEL_SERIAL_BUFFER_RING_SIZE - (*p_write_counter - read_counter);
   // Strictly less because one element is always considered "dirty"
   if (1 < capacity_remaining) {
-    ctx->data[ctx->write_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE];
+    ctx->data[(*p_write_counter) % SENTINEL_SERIAL_BUFFER_RING_SIZE] = c;
     // Release memory fence - ensure that data write above completes BEFORE we advance ctx->write_counter
     __atomic_thread_fence(__ATOMIC_RELEASE);
     ++(*p_write_counter);
