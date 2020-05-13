@@ -156,8 +156,9 @@ bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_bu
     + payload_checksum_length
     + sizeof(serial_sentinel_after_checksum);
 
-  counter_t read_counter = ctx->read_counter;
+  counter_t original_write_counter = ctx->write_counter;
   counter_t *p_write_counter = (counter_t *) &(ctx->write_counter);
+  counter_t read_counter = ctx->read_counter;
 
   // Acquire memory fence - ensure read of ctx->read_counter BEFORE reading data  
   __atomic_thread_fence(__ATOMIC_ACQUIRE);
@@ -206,6 +207,11 @@ bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_bu
     __atomic_thread_fence(__ATOMIC_RELEASE);
     *p_write_counter = write_index;
 
+    fprintf(stdout, "SSB sending %zu octets (%zu octets sentinelized):\n", length, sentinelized_length);
+    hexdump_ring("    ", 32, &ctx->data[0], SENTINEL_SERIAL_BUFFER_RING_SIZE,
+		 ((size_t) original_write_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE), sentinelized_length);
+    fflush(stdout);
+    
     return true;
 
   } else {
