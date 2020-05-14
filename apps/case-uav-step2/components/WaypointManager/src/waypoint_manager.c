@@ -40,11 +40,11 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
 
     AirVehicleState * airVehicleState = NULL;
     lmcp_init_AirVehicleState(&airVehicleState);
-    lmcp_process_msg(&(data->payload), sizeof(data->payload), (lmcp_object**)&airVehicleState);
+    int msg_result = lmcp_process_msg((uint8_t**) &(data->payload), sizeof(data->payload), (lmcp_object**)&airVehicleState);
 
     // printf("AirVehicleState waypoint = %llu\n", airVehicleState->super.currentwaypoint);
 
-    if (currentWaypoint != airVehicleState->super.currentwaypoint) {
+    if (msg_result == 0 && currentWaypoint != airVehicleState->super.currentwaypoint) {
         currentWaypoint = airVehicleState->super.currentwaypoint;
         if (automationResponse != NULL) {
             sendMissionCommand();
@@ -106,10 +106,12 @@ void automation_response_in_event_data_receive_handler(counter_t numDropped, dat
     }
     lmcp_init_AutomationResponse(&automationResponse);
     
-    lmcp_process_msg(&(data->payload), sizeof(data->payload), (lmcp_object**)&automationResponse);
+    int msg_result = lmcp_process_msg((uint8_t **) &(data->payload), sizeof(data->payload), (lmcp_object**)&automationResponse);
 
-    if (currentWaypoint > 0) {
+    if (msg_result == 0) {
+       if (currentWaypoint > 0) {
         sendMissionCommand();
+       }
     }
 
 }
@@ -217,10 +219,10 @@ void sendMissionCommand() {
     addressAttributedMessage->lmcp_obj = (lmcp_object*)missionCommand;
 
     data_t data;
-    lmcp_pack_AddressAttributedMessage(data->payload, addressAttributedMessage);
+    lmcp_pack_AddressAttributedMessage(data.payload, addressAttributedMessage);
 
     // Send it
-    mission_command_out_event_data_send(data);
+    mission_command_out_event_data_send(&data);
 
     lmcp_free_AddressAttributedMessage(addressAttributedMessage, 1);
 
