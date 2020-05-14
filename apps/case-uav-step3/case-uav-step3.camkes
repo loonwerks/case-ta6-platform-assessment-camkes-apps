@@ -1,0 +1,153 @@
+/*
+ * Copyright 2020 Collins Aerospace
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 3-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD3.txt" for details.
+ */
+#include <configurations/vm.h>
+
+import <std_connector.camkes>;
+import <global-connectors.camkes>;
+import <seL4VMDTBPassthrough.idl4>;
+import <FileServerInterface.camkes>;
+import <FileServer/FileServer.camkes>;
+import <SerialServer/SerialServer.camkes>;
+import <TimeServer/TimeServer.camkes>;
+import <vm-connectors.camkes>;
+import <devices.camkes>;
+
+import "components/AutopilotSerialServer/AutopilotSerialServer.camkes";
+import "components/WaypointManager/WaypointManager.camkes";
+
+component Radio_VM {
+    VM_INIT_DEF()
+    include <queue.h>;
+
+    dataport queue_t operating_region_out_crossvm_dp;
+    emits SendEvent operating_region_out_ready;
+
+    dataport queue_t line_search_task_out_crossvm_dp;
+    emits SendEvent line_search_task_out_ready;
+
+    dataport queue_t automation_request_out_crossvm_dp;
+    emits SendEvent automation_request_out_ready;
+}
+
+
+component UxAS_VM {
+    VM_INIT_DEF()
+    include <queue.h>;
+
+    dataport queue_t operating_region_in_crossvm_dp;
+    maybe consumes SendEvent operating_region_in_done;
+
+    dataport queue_t line_search_task_in_crossvm_dp;
+    maybe consumes SendEvent line_search_task_in_done;
+
+    dataport queue_t automation_request_in_crossvm_dp;
+    maybe consumes SendEvent automation_request_in_done;
+
+    dataport queue_t air_vehicle_state_in_crossvm_dp;
+    maybe consumes SendEvent air_vehicle_state_in_done;
+
+    dataport queue_t automation_response_out_crossvm_dp;
+    emits SendEvent automation_response_out_ready;
+}
+
+
+assembly {
+    composition {
+
+        VM_GENERAL_COMPOSITION_DEF()
+
+        component Radio_VM vmRadio;
+        VM_COMPONENT_CONNECTIONS_DEF(Radio)
+
+        component UxAS_VM vmUxAS;
+        VM_COMPONENT_CONNECTIONS_DEF(UxAS)
+        VM_VIRTUAL_SERIAL_COMPOSITION_DEF(UxAS)
+
+        component AutopilotSerialServer autopilot_serial_server;
+        component WaypointManager waypoint_manager;
+
+        connection seL4GlobalAsynch event_conn_1(from vmRadio.operating_region_out_ready, to vmUxAS.operating_region_in_done);
+        connection seL4SharedDataWithCaps cross_vm_conn_1(from vmRadio.operating_region_out_crossvm_dp, to vmUxAS.operating_region_in_crossvm_dp);
+
+        connection seL4GlobalAsynch event_conn_2(from vmRadio.line_search_task_out_ready, to vmUxAS.line_search_task_in_done);
+        connection seL4SharedDataWithCaps cross_vm_conn_2(from vmRadio.line_search_task_out_crossvm_dp, to vmUxAS.line_search_task_in_crossvm_dp);
+
+        connection seL4GlobalAsynch event_conn_3(from vmRadio.automation_request_out_ready, to vmUxAS.automation_request_in_done);
+        connection seL4SharedDataWithCaps cross_vm_conn_3(from vmRadio.automation_request_out_crossvm_dp, to vmUxAS.automation_request_in_crossvm_dp);
+
+        connection seL4Notification event_conn_4(from vmUxAS.automation_response_out_ready, to waypoint_manager.automation_response_in_SendEvent);
+        connection seL4SharedDataWithCaps cross_vm_conn_4(from vmUxAS.automation_response_out_crossvm_dp, to waypoint_manager.automation_response_in_queue);
+
+        connection seL4GlobalAsynch event_conn_5(from autopilot_serial_server.air_vehicle_state_out_1_SendEvent, to vmUxAS.air_vehicle_state_in_done);
+        connection seL4SharedDataWithCaps cross_vm_conn_5(from autopilot_serial_server.air_vehicle_state_out_1_queue, to vmUxAS.air_vehicle_state_in_crossvm_dp);
+
+        connection seL4Notification event_conn_6(from waypoint_manager.mission_command_out_SendEvent, to autopilot_serial_server.mission_command_in_SendEvent);
+        connection seL4SharedDataWithCaps cross_vm_conn_6(from waypoint_manager.mission_command_out_queue, to autopilot_serial_server.mission_command_in_queue);
+
+        connection seL4Notification event_conn_7(from autopilot_serial_server.air_vehicle_state_out_2_SendEvent, to waypoint_manager.air_vehicle_state_in_SendEvent);
+        connection seL4SharedDataWithCaps cross_vm_conn_7(from autopilot_serial_server.air_vehicle_state_out_2_queue, to waypoint_manager.air_vehicle_state_in_queue);
+
+        connection seL4VMDTBPassthrough vm_dtb0(from vmRadio.dtb_self, to vmRadio.dtb);
+        connection seL4VMDTBPassthrough vm_dtb1(from vmUxAS.dtb_self, to vmUxAS.dtb);
+
+    }
+    configuration {
+
+        cross_vm_conn_1.size = 32768;
+        cross_vm_conn_2.size = 32768;
+        cross_vm_conn_3.size = 32768;
+        cross_vm_conn_4.size = 32768;
+        cross_vm_conn_5.size = 32768;
+        cross_vm_conn_6.size = 32768;
+        cross_vm_conn_7.size = 32768;
+
+        autopilot_serial_server.mission_command_in_queue_access = "R";
+        autopilot_serial_server.mission_command_in_SendEvent_domain = 1;
+        autopilot_serial_server.air_vehicle_state_out_queue_access = "W";
+        autopilot_serial_server.serial_getchar_shmem_size = 0x1000;
+        autopilot_serial_server._priority = 50;
+        autopilot_serial_server._domain = 1;
+
+        waypoint_manager.automation_response_in_queue_access = "R";
+        waypoint_manager.automation_response_in_SendEvent_domain = 2;
+        waypoint_manager.air_vehicle_state_in_queue_access = "R";
+        waypoint_manager.air_vehicle_state_in_SendEvent_domain = 2;
+        waypoint_manager.mission_command_out_queue_access = "W";
+        waypoint_manager._priority = 50;
+        waypoint_manager._domain = 2;
+
+        vmRadio.operating_region_out_crossvm_dp = "W";
+        vmRadio.line_search_task_out_crossvm_dp = "W";
+        vmRadio.automation_request_out_crossvm_dp = "W";
+
+        vmUxAS.operating_region_in_crossvm_dp = "R";
+        vmUxAS.line_search_task_in_crossvm_dp = "R";
+        vmUxAS.automation_request_in_crossvm_dp = "R";
+        vmUxAS.air_vehicle_state_in_crossvm_dp = "R";
+        vmUxAS.automation_response_out_crossvm_dp = "W";
+
+        VM_GENERAL_CONFIGURATION_DEF()
+        VM_CONFIGURATION_DEF(Radio)
+        VM_CONFIGURATION_DEF(UxAS)
+        VM_VIRTUAL_SERIAL_CONFIGURATION_DEF(UxAS)
+
+        vmRadio.cnode_size_bits = 18;
+        vmRadio.simple_untyped21_pool = 12;
+        vmRadio.simple_untyped12_pool = 12;
+        vmRadio.num_extra_frame_caps = 0;
+        vmRadio.extra_frame_map_address = 0;
+
+        vmUxAS.cnode_size_bits = 18;
+        vmUxAS.simple_untyped21_pool = 12;
+        vmUxAS.simple_untyped12_pool = 12;
+        vmUxAS.num_extra_frame_caps = 0;
+        vmUxAS.extra_frame_map_address = 0;
+
+    }
+}
+

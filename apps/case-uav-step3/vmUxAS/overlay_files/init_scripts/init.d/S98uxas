@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# Start logging
+#
+
+[ -r /etc/default/uxas ] && . /etc/default/uxas
+
+start() {
+        printf "Starting OpenUxAS: "
+        chgrp uxas /dev/uio0
+        chgrp uxas /dev/uio1
+        chmod g+rw /dev/uio0
+        chmod g+rw /dev/uio1
+        chmod +x /home/uxas/ex/p2/01_Waterway/runUxAS_WaterwaySearch_UAV.sh
+        while ! [ "$(cat /sys/class/net/eth0/operstate)" = "up" ]; do sleep 2; done;
+        start-stop-daemon -b -S -q -m -p /var/run/uxas.pid -c uxas --exec /home/uxas/ex/p2/01_Waterway/runUxAS_WaterwaySearch_UAV.sh >> uxas-stdout
+        echo "OK"
+}
+
+stop() {
+        printf "Stopping OpenUxAS: "
+        start-stop-daemon -K -q -p /var/run/uxas.pid
+        echo "OK"
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac
+
+exit $?
+

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft">
+    <!-- Use TCP for wired --->
+    <!-- Example network configuration:
+         The addresses for the bridges configured herein assume the following
+         network addresses.  You may need to change them if your network
+         differs.
+            AMASE host 192.168.2.2
+            UxAS Ground Station 192.168.2.5
+            UxAS Air Vehicle 192.168.2.7
+    --->
+    <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://0.0.0.0:5556" Server="TRUE">
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.LineSearchTask"/>
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.AutomationRequest"/>
+    </Bridge>
+
+    <!-- CAmkES bridges
+      /dev/uio0 : transmitter to UxAS operating region port
+      /dev/uio1 : transmitter to UxAS line search task port
+      /dev/uio2 : transmitter to UxAS automation request port
+    -->
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio0">
+        <SubscribeToMessage MessageType="afrl.cmasi.OperatingRegion"/>
+    </Bridge>
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio1">
+        <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask"/>
+    </Bridge>
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio2">
+        <SubscribeToMessage MessageType="afrl.cmasi.AutomationRequest"/>
+    </Bridge>
+
+    <!-- Connect to AMASE (see config folder in OpenAMASE) -->
+    <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://192.168.2.2:5555" Server="FALSE">
+        <SubscribeToMessage MessageType="afrl.cmasi.KeepInZone"/>
+        <SubscribeToMessage MessageType="afrl.cmasi.KeepOutZone"/>
+        <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask" />
+    </Bridge>
+
+    <Service Type="MessageLoggerDataService" LogFileMessageCountLimit="1000" FilesPerSubDirectory="1000">
+        <LogMessage MessageType="uxas" NumberMessagesToSkip="0"/>
+        <LogMessage MessageType="afrl" NumberMessagesToSkip="0"/>    
+    </Service>
+</UxAS>
+
+
