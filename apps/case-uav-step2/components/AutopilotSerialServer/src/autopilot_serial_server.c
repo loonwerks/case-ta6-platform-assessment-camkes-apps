@@ -298,9 +298,7 @@ int run(void) {
 	air_vehicle_state_out_2_event_data_send(&data);
       } else {
 	if (errno != EAGAIN) {
-	  char strerror_buf[256];
-	  fprintf(stdout, "apss: serial receive error %d: %s\n",
-		  errno, strerror_r(errno, &strerror_buf[0], sizeof(strerror_buf)));
+	  fprintf(stdout, "apss: serial receive error %d: %s\n", errno, strerror(errno));
 	  fflush(stdout);
 	}
       }
