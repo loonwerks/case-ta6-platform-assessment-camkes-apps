@@ -260,10 +260,10 @@ DefineCAmkESVMFileServer()
 CAmkESAddImportPath(${CMAKE_CURRENT_SOURCE_DIR}/${KernelARMPlatform}/)
 
 # Define our VM Component with out cross vm dataports glue code
-ExtendCAmkESComponentInstance(VM vmUxAS SOURCES src/cross_vm_connections_vmUxAS.c)
+ExtendCAmkESComponentInstance(UxAS_VM vmUxAS SOURCES src/cross_vm_connections_vmUxAS.c)
 
 # Link the vm component against the queue library.
-DeclareCAmkESComponent(VM LIBS queue)
+DeclareCAmkESComponent(UxAS_VM LIBS queue)
 
 CAmkESAddCPPInclude(${CAMKES_ARM_VM_DIR}/components/VM)
 
