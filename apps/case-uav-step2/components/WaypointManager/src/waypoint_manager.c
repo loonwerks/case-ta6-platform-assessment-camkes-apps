@@ -16,17 +16,43 @@
 
 #include "hexdump.h"
 
+#include "WaypointManagerUtils.h"
+#include "./CMASI/lmcp.h"
+#include "./CMASI/common/conv.h"
+#include "./CMASI/MissionCommand.h"
+#include "./CMASI/AirVehicleState.h"
+#include "./CMASI/EntityState.h"
+#include "./CMASI/AutomationResponse.h"
+#include "./CMASI/AddressAttributedMessage.h"
+
 // Forward declarations
 /* int send_mission_command(void); */
 void mission_command_out_event_data_send(data_t *data);
-
+void sendMissionCommand();
 
 //------------------------------------------------------------------------------
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "p1_in".
-void air_vehicle_state_in_event_data_receive(counter_t numDropped, data_t *data) {
+void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_t *data) {
+
     printf("%s: received air vehicle state: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
+
+    AirVehicleState * airVehicleState = NULL;
+    lmcp_init_AirVehicleState(&airVehicleState);
+    lmcp_process_msg(&(data->payload), sizeof(data->payload), (lmcp_object**)&airVehicleState);
+
+    // printf("AirVehicleState waypoint = %llu\n", airVehicleState->super.currentwaypoint);
+
+    if (currentWaypoint != airVehicleState->super.currentwaypoint) {
+        currentWaypoint = airVehicleState->super.currentwaypoint;
+        if (automationResponse != NULL) {
+            sendMissionCommand();
+        }
+    }
+
+    lmcp_free_AirVehicleState(airVehicleState, 1);
+
 }
 
 //------------------------------------------------------------------------------
@@ -67,11 +93,25 @@ bool air_vehicle_state_in_event_data_poll(counter_t *numDropped, data_t *data) {
 //------------------------------------------------------------------------------
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "automation_response_in".
-void automation_response_in_event_data_receive(counter_t numDropped, data_t *data) {
+void automation_response_in_event_data_receive_handler(counter_t numDropped, data_t *data) {
+
     printf("%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
     // For testing, whenever we receive an automation response, send it out on the mission command out port
-    mission_command_out_event_data_send(data);
+    //mission_command_out_event_data_send(data);
+
+    if (automationResponse != NULL) {
+        lmcp_free_AutomationResponse(automationResponse, 1);
+        automationResponse = NULL;
+    }
+    lmcp_init_AutomationResponse(&automationResponse);
+    
+    lmcp_process_msg(&(data->payload), sizeof(data->payload), (lmcp_object**)&automationResponse);
+
+    if (currentWaypoint > 0) {
+        sendMissionCommand();
+    }
+
 }
 
 //------------------------------------------------------------------------------
@@ -132,19 +172,73 @@ void mission_command_out_event_data_send(data_t *data) {
     done_emit();
 }
 
+void sendMissionCommand() {
 
-static const char message[] = {
-// TODO: This message is BOGUS... Fix it.
-  0x61,0x66,0x72,0x6C,0x2E,0x63,0x6D,0x61,0x73,0x69,0x2E,0x4D,0x69,0x73,0x73,0x69,  /* afrl:cmasi:Missi */
-  0x6F,0x6E,0x43,0x6F,0x6D,0x6D,0x61,0x6E,0x6D,0x24,0x6C,0x6D,0x63,0x70,0x7C,0x61,  /* onCommand$lmcp|a */
-  0x66,0x72,0x6C,0x2E,0x63,0x6D,0x61,0x73,0x69,0x2E,0x4D,0x69,0x73,0x73,0x69,0x6F,  /* frl:cmasi:Missio */
-  0x6E,0x43,0x6F,0x6D,0x6D,0x61,0x6E,0x64,0x7C,0x54,0x63,0x70,0x42,0x72,0x69,0x64,  /* nCommand|6?p*rid */
-  0x67,0x65,0x7C,0x34,0x30,0x30,0x7C,0x36,0x38,0x24,0x4C,0x4D,0x43,0x50,0x00,0x00,  /* ge|400|68$LMCP.. */
-  0x00,0x2B,0x01,0x43,0x4D,0x41,0x53,0x49,0x00,0x00,0x00,0x00,0x00,0x00,0x27,0x00,  /* .+.CMASI......'. */
-  0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x50,0x00,0x01,0x00,0x00,0x00,0x00,0x00,  /* ........P....... */
-  0x00,0x01,0x4E,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x4F,0x00,0x00,0x03,  /* ..N.........O... */
-  0xE1                                                                              /* .                */
-};
+    // Don't do anything if current waypoint is 0.
+    // Something is wrong.  This method should not have been called.
+    if (currentWaypoint == 0) {
+        return;
+    }
+  
+    // Don't do anything until an AutomationRequest is recevied
+    if (automationResponse == NULL) {
+        return;
+    }
+
+    // Construct mission command message
+    MissionCommand * missionCommand = NULL;
+    lmcp_init_MissionCommand(&missionCommand);
+    missionCommand->super = automationResponse->missioncommandlist[0]->super;
+    missionCommand->super.commandid = currentCommand++;
+    missionCommand->super.status = 1;
+    missionCommand->waypointlist_ai.length = WINDOW_SIZE;
+    missionCommand->waypointlist = malloc(sizeof(Waypoint*) * WINDOW_SIZE);
+
+    if (returnHome) {
+        // Set mission window waypoints to home
+        for (int i = 0; i < WINDOW_SIZE; i++) {
+            missionCommand->waypointlist[i] = homeWaypoint;
+        }
+    } else {
+        // Construct mission window
+        AutoPilotMissionCommandSegment( automationResponse->missioncommandlist[0]->waypointlist,
+                                        automationResponse->missioncommandlist[0]->waypointlist_ai.length,
+                                        currentWaypoint,
+                                        missionCommand->waypointlist,
+                                        WINDOW_SIZE);
+    }
+
+    missionCommand->firstwaypoint = missionCommand->waypointlist[0]->nextwaypoint;
+    char * attributes = "afrl.cmasi.MissionCommand$lmcp|afrl.cmasi.MissionCommand||400|63$";
+    AddressAttributedMessage * addressAttributedMessage = NULL;
+    lmcp_init_AddressAttributedMessage(&addressAttributedMessage);
+    addressAttributedMessage->attributes = attributes;
+    lmcp_init_MissionCommand((MissionCommand**)&(addressAttributedMessage->lmcp_obj));
+    addressAttributedMessage->lmcp_obj = (lmcp_object*)missionCommand;
+
+    data_t data;
+    lmcp_pack_AddressAttributedMessage(data->payload, addressAttributedMessage);
+
+    // Send it
+    mission_command_out_event_data_send(data);
+
+    lmcp_free_AddressAttributedMessage(addressAttributedMessage, 1);
+
+}
+
+
+// static const char message[] = {
+// // TODO: This message is BOGUS... Fix it.
+//   0x61,0x66,0x72,0x6C,0x2E,0x63,0x6D,0x61,0x73,0x69,0x2E,0x4D,0x69,0x73,0x73,0x69,  /* afrl:cmasi:Missi */
+//   0x6F,0x6E,0x43,0x6F,0x6D,0x6D,0x61,0x6E,0x6D,0x24,0x6C,0x6D,0x63,0x70,0x7C,0x61,  /* onCommand$lmcp|a */
+//   0x66,0x72,0x6C,0x2E,0x63,0x6D,0x61,0x73,0x69,0x2E,0x4D,0x69,0x73,0x73,0x69,0x6F,  /* frl:cmasi:Missio */
+//   0x6E,0x43,0x6F,0x6D,0x6D,0x61,0x6E,0x64,0x7C,0x54,0x63,0x70,0x42,0x72,0x69,0x64,  /* nCommand|6?p*rid */
+//   0x67,0x65,0x7C,0x34,0x30,0x30,0x7C,0x36,0x38,0x24,0x4C,0x4D,0x43,0x50,0x00,0x00,  /* ge|400|68$LMCP.. */
+//   0x00,0x2B,0x01,0x43,0x4D,0x41,0x53,0x49,0x00,0x00,0x00,0x00,0x00,0x00,0x27,0x00,  /* .+.CMASI......'. */
+//   0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x50,0x00,0x01,0x00,0x00,0x00,0x00,0x00,  /* ........P....... */
+//   0x00,0x01,0x4E,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x4F,0x00,0x00,0x03,  /* ..N.........O... */
+//   0xE1                                                                              /* .                */
+// };
 
 
 /*
@@ -178,12 +272,12 @@ void run_poll(void) {
 
         bool dataReceived = air_vehicle_state_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
-            air_vehicle_state_in_event_data_receive(numDropped, &data);
+            air_vehicle_state_in_event_data_receive_handler(numDropped, &data);
         }
 
         dataReceived = automation_response_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
-            automation_response_in_event_data_receive(numDropped, &data);
+            automation_response_in_event_data_receive_handler(numDropped, &data);
         }
 
         seL4_Yield();
@@ -215,6 +309,10 @@ void post_init(void) {
 }
 
 int run(void) {
+
+    // Initialization
+    initializeWaypointManager();
+
     // Pick one receive style to test.
     run_poll();
     //run_wait();

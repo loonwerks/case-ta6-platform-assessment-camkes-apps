@@ -18,6 +18,23 @@ project(ComponentWaypointManager C)
 DeclareCAmkESComponent(WaypointManager
     SOURCES
     src/waypoint_manager.c
+    src/WaypointManagerUtils.c
+    src/CMASI/AddressAttributedMessage.c
+    src/CMASI/AirVehicleState.c
+    src/CMASI/AutomationResponse.c
+    src/CMASI/EntityConfiguration.c
+    src/CMASI/EntityState.c
+    src/CMASI/KeyValuePair.c
+    src/CMASI/lmcp.c
+    src/CMASI/Location3D.c
+    src/CMASI/MissionCommand.c
+    src/CMASI/PayloadAction.c
+    src/CMASI/PayloadConfiguration.c
+    src/CMASI/PayloadState.c
+    src/CMASI/VehicleAction.c
+    src/CMASI/VehicleActionCommand.c
+    src/CMASI/Waypoint.c
+    src/CMASI/common/conv.c
     LIBS
     hexdump
     queue
