@@ -1,5 +1,6 @@
 #pragma once
-#include "types.h"
+
+#include <sys/types.h>
 
 struct lmcp_object_struct {
     uint32_t type;

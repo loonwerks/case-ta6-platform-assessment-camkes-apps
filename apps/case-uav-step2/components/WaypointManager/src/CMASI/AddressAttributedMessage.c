@@ -1,9 +1,10 @@
-#include "AddressAttributedMessage.h"
-#include "lmcp.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+
+#include "AddressAttributedMessage.h"
+#include "lmcp.h"
 
 void lmcp_pp_AddressAttributedMessage(AddressAttributedMessage* s) {
     printf("AddressAttributedMessage {\n");

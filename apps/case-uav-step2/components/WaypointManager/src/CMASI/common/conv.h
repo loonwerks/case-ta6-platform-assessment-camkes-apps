@@ -1,7 +1,10 @@
 #pragma once
-#include "types.h"
-#include "conv.h"
+
 #include <stdio.h>
+#include <sys/types.h>
+
+#include "conv.h"
+
 // from beej
 
 #define LMCP_DEBUG(fmt,args...) printf("%s,%s,%i:"fmt,__FUNCTION__,__FILE__,__LINE__,##args)

@@ -1,5 +1,8 @@
 
 #pragma once
+
+#include <sys/types.h>
+
 #include "common/struct_defines.h"
 
 #define ATTRIBUTE_DELIMITER '$'
