@@ -36,6 +36,8 @@
 #define PAYLOAD_SIZE_BUFFER_SIZE 32
 #define CHECKSUM_BUFFER_SIZE 32
 
+#define DUMP_LINE_LENGTH 32
+#define MAX_DUMP_SIZE (2 * DUMP_LINE_LENGTH)
 
 static const uint8_t serial_sentinel_before_payload_size[] = { '+', '=', '+', '=', '+', '=', '+', '=' };
 
@@ -208,8 +210,9 @@ bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_bu
     *p_write_counter = write_index;
 
     fprintf(stdout, "SSB sending %zu octets (%zu octets sentinelized):\n", length, sentinelized_length);
-    hexdump_ring("    ", 32, &ctx->data[0], SENTINEL_SERIAL_BUFFER_RING_SIZE,
-		 ((size_t) original_write_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE), sentinelized_length);
+    hexdump_ring("    ", DUMP_LINE_LENGTH, &ctx->data[0], SENTINEL_SERIAL_BUFFER_RING_SIZE,
+		 ((size_t) original_write_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE),
+		 (sentinelized_length < MAX_DUMP_SIZE) ? sentinelized_length : MAX_DUMP_SIZE);
     fflush(stdout);
     
     return true;
@@ -252,7 +255,7 @@ bool sentinel_serial_buffer_find_sentinel_in_ring(const uint8_t *buffer, size_t 
   /*
   fprintf(stdout, "apss ssb find: buffer %p, sz %zu, read %llu, write %llu, sentinel %p, len %zu, pos %llu\n",
 	  buffer, buffer_size, read_counter, write_counter, sentinel, sentinel_length, *position);
-  hexdump("    ", 32, buffer, 1024);
+  hexdump("    ", DUMP_LINE_LENGTH, buffer, 1024);
   fflush(stdout);
   */
   
@@ -344,7 +347,7 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
 
   /*
   fprintf(stdout, "apss ssb get payload: ctx %p, buffer %p, sz %zu\n", ctx, buffer, buffer_size);
-  hexdump("    ", 32, &ctx->data[0], 1024);
+  hexdump("    ", DUMP_LINE_LENGTH, &ctx->data[0], 1024);
   fflush(stdout);
   */
   
@@ -457,7 +460,7 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
   fprintf(stdout, "apss ssb get payload: computed checksum %lu, errno %d: %s\n",
 	  computed_checksum, errno, strerror(errno));
   fflush(stdout);
-  hexdump("    ", 32, buffer, payload_size);
+  hexdump("    ", DUMP_LINE_LENGTH, buffer, payload_size);
   */
   if (expected_checksum != computed_checksum) {
     errno = EIO;

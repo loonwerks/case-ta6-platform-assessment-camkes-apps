@@ -208,7 +208,8 @@ static const char message[] = {
 };
 
 
-#define DUMP_SIZE 64
+#define DUMP_LINE_LENGTH 32
+#define MAX_DUMP_SIZE (2 * DUMP_LINE_LENGTH)
 
 
 int run(void) {
@@ -216,52 +217,6 @@ int run(void) {
   counter_t numDropped;
   data_t data;
 
-  // Busy loop to slow things down
-  for (unsigned int j = 0; j < 10000000; ++j) {
-    seL4_Yield();
-  }
-
-
-  // Test the sentinel serial buffer
-  {
-    const size_t max_message_length = 4096;
-    bool result;
-    ssize_t decode_length;
-    int compare_result;
-      
-    sentinel_serial_buffer_t *ssb = sentinel_serial_buffer_alloc();
-    uint8_t *decoded_message = calloc(max_message_length, sizeof(uint8_t));
-
-    result = sentinel_serial_buffer_append_sentinelized_string(ssb, &message[0], sizeof(message));
-    fprintf(stdout, "apss: ssb test append returned %d\n", (int) result);  fflush(stdout);
-
-    result = sentinel_serial_buffer_append_sentinelized_string(ssb, &message[0], sizeof(message));
-    fprintf(stdout, "apss: ssb test append 2 returned %d\n", (int) result); fflush(stdout);
-
-    decode_length = sentinel_serial_buffer_get_next_payload_string(ssb, &decoded_message[0], max_message_length);
-    if (decode_length > 0) {
-      compare_result = strncmp((const char *) message, (const char *) decoded_message, sizeof(message));
-      fprintf(stdout, "apss: ssb test decode returned %zd octets, compare returned %d\n",
-	      decode_length, compare_result); fflush(stdout);
-    } else {
-      fprintf(stdout, "apss: ssb test decode returned %zd: %s\n",
-	      decode_length, strerror(errno));
-    }
-
-    decode_length = sentinel_serial_buffer_get_next_payload_string(ssb, &decoded_message[0], max_message_length);
-    if (decode_length > 0) {
-      compare_result = strncmp((const char *) message, (const char *) decoded_message, sizeof(message));
-      fprintf(stdout, "apss: ssb test decode 2 returned %zd octets, compare returned %d\n",
-	      decode_length, compare_result); fflush(stdout);
-    } else {
-      fprintf(stdout, "apss: ssb test decode 2 returned %zd: %s\n",
-	      decode_length, strerror(errno));
-    }
-
-    free(decoded_message);
-    sentinel_serial_buffer_free(ssb);
-  }
-    
   while (1) {
 
     // Busy loop to slow things down
@@ -278,11 +233,12 @@ int run(void) {
 
 	if (message_size > 0) {
 	  fprintf(stdout, "apss: received mission command message of %zu octets\n", message_size);  fflush(stdout);
-	  hexdump("    ", 32, &data.payload[0], (message_size > DUMP_SIZE) ? DUMP_SIZE : message_size);
+	  hexdump("    ", DUMP_LINE_LENGTH, &data.payload[0], (message_size > MAX_DUMP_SIZE) ? MAX_DUMP_SIZE : message_size);
 	  autopilot_serial_server_write_serial(&data.payload[0], message_size);
 	} else {
 	  fprintf(stdout, "apss: received mission command message, decode errno result %d\n", errno);  fflush(stdout);
-	  hexdump("    ", 32, &data.payload[0], (message_size > DUMP_SIZE) ? DUMP_SIZE : sizeof(data.payload));
+	  hexdump("    ", DUMP_LINE_LENGTH, &data.payload[0],
+		  (sizeof(data.payload) > MAX_DUMP_SIZE) ? MAX_DUMP_SIZE : sizeof(data.payload));
 	}
 	
       }
@@ -292,7 +248,7 @@ int run(void) {
 
       if (received_size > 0) {
 	// fprintf(stdout, "apss: received serial message of %zu octets\n", received_size);  fflush(stdout);
-	// hexdump("    ", 32, &data.payload[0], (received_size> DUMP_SIZE) ? DUMP_SIZE : received_size);    
+	// hexdump("    ", DUMP_LINE_LENGTH, &data.payload[0], (received_size> MAX_DUMP_SIZE) ? MAX_DUMP_SIZE : received_size);    
 	// TODO: Check that received data is an Air Vehicle State message and discard others
 	air_vehicle_state_out_1_event_data_send(&data);
 	air_vehicle_state_out_2_event_data_send(&data);
@@ -306,9 +262,9 @@ int run(void) {
       seL4_Yield();
 
       // Busy loop to slow things down
-      for (unsigned int n = 0; n < 1000; ++n) {
-	seL4_Yield();
-      }
+      // for (unsigned int n = 0; n < 1000; ++n) {
+      //   seL4_Yield();
+      // }
 
     }
 
