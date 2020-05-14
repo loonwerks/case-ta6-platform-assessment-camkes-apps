@@ -9,8 +9,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#define DATA_T_MAX_PAYLOAD (4096 - sizeof(unsigned long long int))
-//#define DATA_T_MAX_PAYLOAD (1024 - sizeof(unsigned long long int))
+#define DATA_T_MAX_PAYLOAD (8192 - sizeof(unsigned long long int))
 
 typedef struct data {
   uint8_t payload[DATA_T_MAX_PAYLOAD];
