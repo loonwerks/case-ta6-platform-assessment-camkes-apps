@@ -406,6 +406,17 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
   fflush(stdout);
   */
   
+  counter_t octets_to_copy = before_checksum_offset - (after_payload_size_offset + sizeof(serial_sentinel_after_payload_size));
+  for (counter_t index = 0; index < octets_to_copy; ++index) {
+    buffer[index] =
+      ctx->data[(original_read_counter + after_payload_size_offset + sizeof(serial_sentinel_after_payload_size) + index)
+		% SENTINEL_SERIAL_BUFFER_RING_SIZE];
+  }
+
+  // Release memory fence - ensure copy operation complete BEFORE updating read counter
+  __atomic_thread_fence(__ATOMIC_RELEASE);
+  *p_read_counter = original_read_counter + after_checksum_offset + sizeof(serial_sentinel_after_checksum);
+
   size_t payload_size =
     (size_t) sentinel_serial_buffer_ring_strtoul(ctx->data, SENTINEL_SERIAL_BUFFER_RING_SIZE,
 						 original_read_counter
@@ -440,16 +451,6 @@ ssize_t sentinel_serial_buffer_get_next_payload_string(struct sentinel_serial_bu
     errno = EFAULT;
     return -1;
   }
-
-  for (counter_t index = 0; index < payload_size; ++index) {
-    buffer[index] =
-      ctx->data[(original_read_counter + after_payload_size_offset + sizeof(serial_sentinel_after_payload_size) + index)
-		% SENTINEL_SERIAL_BUFFER_RING_SIZE];
-  }
-
-  // Release memory fence - ensure copy operation complete BEFORE updating read counter
-  __atomic_thread_fence(__ATOMIC_RELEASE);
-  *p_read_counter = original_read_counter + after_checksum_offset + sizeof(serial_sentinel_after_checksum);
 
   uint32_t computed_checksum = sentinel_serial_buffer_calculate_checksum(buffer, payload_size);
   /*
