@@ -29,5 +29,9 @@ component WaypointManager {
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
     emits SendEvent mission_command_out_SendEvent;
     dataport queue_t mission_command_out_queue;
+
+    /* Size of the driver's heap */
+    attribute int heap_size = 512 * 1024;
+
 }
 
