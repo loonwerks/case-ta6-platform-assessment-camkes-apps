@@ -30,7 +30,6 @@
     <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio1" />
     <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio0">
         <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
-        <SubscribeToMessage MessageType="afrl.cmasi.MissionCommand"/>
     </Bridge>
 
     <!-- Connect to AMASE (see config folder in OpenAMASE) -->
@@ -49,9 +48,11 @@
     <Service Type="AssignmentTreeBranchBoundService" NumberNodesMaximum="0" CostFunction="MINMAX" />   
     <Service Type="AutomationDiagramDataService"/>
     <Service Type="ZeroizeConditionRecognizerService" VehicleID="400" />
+    <!--
     <Service Type="WaypointPlanManagerService" VehicleID="400" NumberWaypointsToServe="15" NumberWaypointsOverlap="5"
              DefaultLoiterRadius_m="250"  param.turnType="FlyOver" AddLoiterToEndOfSegments="FALSE"
              AddLoiterToEndOfMission="FALSE" LoopBackToFirstTask="FALSE" GimbalPayloadId="1"/>
+    -->
     <Service Type="PlanBuilderService" AssignmentStartPointLead_m="0.0"/>
     <Service Type="MessageLoggerDataService" LogFileMessageCountLimit="1000" FilesPerSubDirectory="1000">
         <LogMessage MessageType="uxas" NumberMessagesToSkip="0"/>
