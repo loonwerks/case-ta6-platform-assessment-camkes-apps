@@ -31,7 +31,7 @@ component WaypointManager {
     dataport queue_t mission_command_out_queue;
 
     /* Size of the driver's heap */
-    attribute int heap_size = 512 * 1024;
+    attribute int heap_size = 1024 * 1024;
 
 }
 
