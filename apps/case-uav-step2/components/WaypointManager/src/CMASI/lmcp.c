@@ -23,55 +23,55 @@ void lmcp_pp(lmcp_object *o) {
     }
     switch (o->type) {
 
-    case 2:
+    case KEYVALUEPAIR:
         lmcp_pp_KeyValuePair((KeyValuePair*)o);
 
         break;
-    case 3:
+    case LOCATION3D:
         lmcp_pp_Location3D((Location3D*)o);
 
         break;
-    case 4:
+    case PAYLOADACTION:
         lmcp_pp_PayloadAction((PayloadAction*)o);
 
         break;
-    case 5:
+    case PAYLOADCONFIGURATION:
         lmcp_pp_PayloadConfiguration((PayloadConfiguration*)o);
 
         break;
-    case 6:
+    case PAYLOADSTATE:
         lmcp_pp_PayloadState((PayloadState*)o);
 
         break;
-    case 7:
+    case VEHICLEACTION:
         lmcp_pp_VehicleAction((VehicleAction*)o);
 
         break;
-    case 11:
+    case ENTITYCONFIGURATION:
         lmcp_pp_EntityConfiguration((EntityConfiguration*)o);
 
         break;
-    case 14:
+    case ENTITYSTATE:
         lmcp_pp_EntityState((EntityState*)o);
 
         break;
-    case 15:
+    case AIRVEHICLESTATE:
         lmcp_pp_AirVehicleState((AirVehicleState*)o);
 
         break;
-    case 35:
+    case WAYPOINT:
         lmcp_pp_Waypoint((Waypoint*)o);
 
         break;
-    case 36:
+    case MISSIONCOMMAND:
         lmcp_pp_MissionCommand((MissionCommand*)o);
 
         break;
-    case 47:
+    case VEHICLEACTIONCOMMAND:
         lmcp_pp_VehicleActionCommand((VehicleActionCommand*)o);
 
         break;
-    case 51:
+    case AUTOMATIONRESPONSE:
         lmcp_pp_AutomationResponse((AutomationResponse*)o);
 
         break;
@@ -265,7 +265,7 @@ int lmcp_process_msg(uint8_t** inb, size_t size, lmcp_object **o) {
     int firstAttrDelimFound = 0;
     int endIdx = 0;
     for (size_t i = 0; i < size; i++) {
-        if ((*inb)[i] == '$') {
+        if (startPtr[i] == '$') {
             if (firstAttrDelimFound == 0) {
                 firstAttrDelimFound = 1;
             } else {
@@ -274,16 +274,16 @@ int lmcp_process_msg(uint8_t** inb, size_t size, lmcp_object **o) {
             }
         }
     }
-    *inb += endIdx;
+    startPtr += endIdx;
 
-    if ((*inb)[0] != 'L' || (*inb)[1] != 'M' || (*inb)[2] != 'C' || (*inb)[3] != 'P') {
+    if (startPtr[0] != 'L' || startPtr[1] != 'M' || startPtr[2] != 'C' || startPtr[3] != 'P') {
         return -1;
     }
 
-    *inb += 4;
+    startPtr += 4;
     size_t s = 4;
     uint32_t msglen;
-    CHECK(lmcp_unpack_uint32_t(inb, &s, &msglen))
+    CHECK(lmcp_unpack_uint32_t(&startPtr, &s, &msglen))
     if (size < (msglen + 8)) {
         return -1;
     }
@@ -291,11 +291,10 @@ int lmcp_process_msg(uint8_t** inb, size_t size, lmcp_object **o) {
 //    uint32_t objtype;
 //    uint16_t objseries;
 //    char seriesname[8];
-//    CHECK(lmcp_unpack_structheader(inb, &msglen, seriesname, &objtype, &objseries))
-    CHECK(lmcp_unpack(inb, msglen, o))
-//    CHECK(lmcp_unpack(inb, msglen, objtype, o))
+//    CHECK(lmcp_unpack_structheader(&startPtr, &msglen, seriesname, &objtype, &objseries))
+    CHECK(lmcp_unpack(&startPtr, msglen, o))
+//    CHECK(lmcp_unpack(&startPtr, msglen, objtype, o))
 
-    *inb = startPtr;
     return 0;
 }
 

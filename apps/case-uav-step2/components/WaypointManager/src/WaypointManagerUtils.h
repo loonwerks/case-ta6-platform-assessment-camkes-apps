@@ -29,12 +29,6 @@
 #define HOME_WAYPOINT_SPEED 1102053376U
 #define HOME_WAYPOINT_NUM 17554
 
-int64_t currentWaypoint;
-int64_t currentCommand;
-bool returnHome;
-AutomationResponse * automationResponse;
-Waypoint * homeWaypoint;
-
 void initializeWaypointManager();
 bool AutoPilotMissionCommandSegment(Waypoint ** ws, uint16_t len_ws, int64_t id, Waypoint ** ws_win, uint16_t len_ws_win);
 

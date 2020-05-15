@@ -19,6 +19,16 @@
 #include "./CMASI/AutomationResponse.h"
 #include "./CMASI/AddressAttributedMessage.h"
 
+/*
+ * Danger: global variables also read/written in waypoint_manager.c
+ * TODO: Fix this.
+ */
+int64_t currentWaypoint;
+int64_t currentCommand;
+bool returnHome;
+AutomationResponse * automationResponse;
+Waypoint * homeWaypoint;
+
 void initializeWaypointManager() {
   currentWaypoint = 0;
   currentCommand = INIT_CMD_ID;

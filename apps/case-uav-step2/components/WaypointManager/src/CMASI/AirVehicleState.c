@@ -58,6 +58,7 @@ void lmcp_free_AirVehicleState(AirVehicleState* out, int out_malloced) {
 void lmcp_init_AirVehicleState (AirVehicleState** i) {
     if (i == NULL) return;
     (*i) = calloc(1,sizeof(AirVehicleState));
+    if (*i == NULL) return;
     ((lmcp_object*)(*i)) -> type = 15;
 }
 int lmcp_unpack_AirVehicleState(uint8_t** inb, size_t *size_remain, AirVehicleState* outp) {
