@@ -3,13 +3,6 @@ cmake_minimum_required(VERSION 3.8.2)
 
 project(arm-vm-uxas C)
 
-includeGlobalComponents()
-find_package(camkes-vm REQUIRED)
-find_package(camkes-vm-images REQUIRED)
-find_package(camkes-arm-vm REQUIRED)
-find_package(camkes-vm-linux REQUIRED)
-camkes_arm_vm_import_project()
-
 include(${CAMKES_VM_LINUX_HELPERS_PATH})
 include(${CAMKES_VM_LINUX_MODULE_HELPERS_PATH})
 include(${CAMKES_VM_LINUX_SOURCE_HELPERS_PATH})
