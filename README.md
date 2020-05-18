@@ -33,11 +33,14 @@ following their instructions, summarized below.
 ~~~
 mkdir case-ta6-platform-assessment-camkes
 cd case-ta6-platform-assessment-camkes
-repo init -u https://github.com/SEL4PROJ/camkes-arm-vm-manifest.git
+repo init -u https://github.com/kent-mcleod/camkes.git -b kent/aadl --depth=1 master.xml
 repo sync
 ~~~
 
 The applications in this repository can then be added to the resulting directory tree by the following commands.
+Eventually, the necessary elements in the CAmkES repository will be merged into the main line of the canonical
+CAmkES repository.  Accordingly, the `repo init` command above is expected to change to
+`repo init -u https://github.com/SEL4PROJ/camkes-arm-vm-manifest.git -b kent/aadl --depth=1`.
 
 ~~~
 cd projects
@@ -62,7 +65,7 @@ cd build
 ninja
 ~~~
 
-where the *<application_name>* is replaced with one of the applications listed in the section describing the included
+where the `<application_name>` is replaced with one of the applications listed in the section describing the included
 applications.
 
 The resulting seL4 image can be found in the build/images directory.
@@ -81,9 +84,26 @@ The step 1 unmanned air vehicle application builds a seL4 image containing a sin
 device is mapped through to the VM and the VM contains OpenUxAS and configuration files to run as the unmanned air vehicle
 from the waterway search example.
 
+### case-uav-step2
+
+The step 2 unmanned air vehicle application builds a seL4 image containing a single virtual machine with the UxAS Waypoint
+Plan Manager Service and the autopilot (modeled by AMASE) via a serial port moved into native CAmkES components.  The hardware
+ethernet device is mapped through to the VM and the VM contains OpenUxAS and configuration files to run as the unmanned air
+vehicle from the
+waterway search example.
+
+### case-uav-step3
+
+The step 3 unmanned air vehicle application extends the case-uav-step2 application be separating the UxAS virtual machine into
+two machines, one modeling the Radio and the other containing the UxAS services.  The hardware ethernet device is mapped
+through to the VM modeling the radio.  Thus, the VM containing OpenUxAS has no direct communication with the outside world;
+all communications are through other components and via seL4 connections where monitors filters and other guards may be
+installed.
+
 ## Installing on ODROID-XU4
 
-The ODROID-XU4 must be provisioned either with an MMC card or a MicroSD card containing the first and second stage bootloaders, the trust zone software and uBoot.  Instructions may be found at the
+The ODROID-XU4 must be provisioned either with an MMC card or a MicroSD card containing the first and second stage bootloaders,
+the trust zone software and uBoot.  Instructions may be found at the
 [seL4 on ODROID-XU4](https://docs.sel4.systems/Hardware/OdroidXU.html) page.
 
 It is important to note that in addition, seL4 depends on uBoot to initialize the USB devices.  The `usb start`
