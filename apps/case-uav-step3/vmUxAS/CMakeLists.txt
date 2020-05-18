@@ -256,3 +256,4 @@ DeclareCAmkESComponent(UxAS_VM LIBS queue)
 
 CAmkESAddCPPInclude(${CAMKES_ARM_VM_DIR}/components/VM)
 
+DeclareCAmkESARMVM(UxAS_VM)

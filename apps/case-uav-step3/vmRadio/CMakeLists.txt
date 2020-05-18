@@ -252,3 +252,5 @@ DeclareCAmkESComponent(Radio_VM LIBS queue)
 
 CAmkESAddCPPInclude(${CAMKES_ARM_VM_DIR}/components/VM)
 
+DeclareCAmkESARMVM(Radio_VM)
+
