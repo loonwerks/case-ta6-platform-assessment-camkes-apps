@@ -24,4 +24,12 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/WaypointManager)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/vmRadio)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/vmUxAS)
 
+CAmkESAddImportPath(exynos5422)
+
 DeclareCAmkESRootserver(case-uav-step3.camkes)
+
+# Add linux kernel image to file server
+AddToFileServer("linux" "${CAMKES_VM_IMAGES_DIR}/${KernelARMPlatform}/linux")
+
+DefineCAmkESVMFileServer()
+

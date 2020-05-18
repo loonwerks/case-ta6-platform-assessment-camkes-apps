@@ -241,10 +241,6 @@ AddOverlayDirToRootfs(
     GZIP
 )
 AddToFileServer("linux-initrd-vm-client-radio" ${output_overlayed_rootfs_location} DEPENDS rootfs_target_radio)
-# Add linux kernel image to file server
-AddToFileServer("linux-radio" "${CAMKES_VM_IMAGES_DIR}/${KernelARMPlatform}/linux-radio")
-
-DefineCAmkESVMFileServer()
 
 CAmkESAddImportPath(${CMAKE_CURRENT_SOURCE_DIR}/${KernelARMPlatform}/)
 

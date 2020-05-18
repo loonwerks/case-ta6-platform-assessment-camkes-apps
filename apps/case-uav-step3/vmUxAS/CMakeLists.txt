@@ -245,10 +245,6 @@ AddOverlayDirToRootfs(
     GZIP
 )
 AddToFileServer("linux-initrd-vm-client-uxas" ${output_overlayed_rootfs_location} DEPENDS rootfs_target_uxas)
-# Add linux kernel image to file server
-AddToFileServer("linux-uxas" "${CAMKES_VM_IMAGES_DIR}/${KernelARMPlatform}/linux-uxas")
-
-DefineCAmkESVMFileServer()
 
 CAmkESAddImportPath(${CMAKE_CURRENT_SOURCE_DIR}/${KernelARMPlatform}/)
 
