@@ -92,8 +92,8 @@ assembly {
         connection seL4Notification event_conn_7(from autopilot_serial_server.air_vehicle_state_out_2_SendEvent, to waypoint_manager.air_vehicle_state_in_SendEvent);
         connection seL4SharedDataWithCaps cross_vm_conn_7(from autopilot_serial_server.air_vehicle_state_out_2_queue, to waypoint_manager.air_vehicle_state_in_queue);
 
-        connection seL4VMDTBPassthrough vm_dtb0(from vmRadio.dtb_self, to vmRadio.dtb);
-        connection seL4VMDTBPassthrough vm_dtb1(from vmUxAS.dtb_self, to vmUxAS.dtb);
+        connection seL4VMDTBPassthrough vmRadio_dtb(from vmRadio.dtb_self, to vmRadio.dtb);
+        connection seL4VMDTBPassthrough vmUxAS_dtb(from vmUxAS.dtb_self, to vmUxAS.dtb);
 
     }
     configuration {
