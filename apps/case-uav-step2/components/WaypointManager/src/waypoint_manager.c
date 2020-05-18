@@ -26,11 +26,25 @@
 #include "./CMASI/AddressAttributedMessage.h"
 
 
-extern int64_t currentWaypoint;
-extern int64_t currentCommand;
-extern bool returnHome;
-extern AutomationResponse * automationResponse;
-extern Waypoint * homeWaypoint;
+#define WINDOW_SIZE 15
+#define WINDOW_OVERLAP 5
+#define INIT_CMD_ID 72
+#define HOME_WAYPOINT_LAT 4631577348376571884UL     // 45.3364
+#define HOME_WAYPOINT_LONG 13861587297017124409UL   // -121.0032
+#define HOME_WAYPOINT_ALT 1143930880U               // 700.0
+#define HOME_WAYPOINT_SPEED 1102053376U
+#define HOME_WAYPOINT_NUM 17554
+
+//extern int64_t currentWaypoint;
+//extern int64_t currentCommand;
+//extern bool returnHome;
+//extern AutomationResponse * automationResponse;
+//extern Waypoint * homeWaypoint;
+int64_t currentWaypoint;
+int64_t currentCommand;
+bool returnHome;
+AutomationResponse * automationResponse;
+Waypoint * homeWaypoint;
 
 
 // Forward declarations
@@ -38,6 +52,30 @@ extern Waypoint * homeWaypoint;
 void mission_command_out_event_data_send(data_t *data);
 void sendMissionCommand();
 
+void initializeWaypointManager() {
+  currentWaypoint = 0;
+  currentCommand = INIT_CMD_ID;
+  returnHome = false;
+  automationResponse = NULL;
+  homeWaypoint = NULL;
+
+  lmcp_init_Waypoint(&homeWaypoint);
+  homeWaypoint->super.latitude = HOME_WAYPOINT_LAT;
+  homeWaypoint->super.longitude = HOME_WAYPOINT_LONG;
+  homeWaypoint->super.altitude = HOME_WAYPOINT_ALT;
+  homeWaypoint->super.altitudetype = 1;
+  homeWaypoint->number = HOME_WAYPOINT_NUM;
+  homeWaypoint->nextwaypoint = HOME_WAYPOINT_NUM;
+  homeWaypoint->speed = HOME_WAYPOINT_SPEED;
+  homeWaypoint->speedtype = 0;
+  homeWaypoint->climbrate = 0;
+  homeWaypoint->turntype = 0;
+  homeWaypoint->vehicleactionlist_ai.length = 0;
+  homeWaypoint->contingencywaypointa = 0;
+  homeWaypoint->contingencywaypointb = 0;
+  homeWaypoint->associatedtasks_ai.length = 0;
+
+}
 
 size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)
 {
@@ -104,7 +142,14 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
 
       printf("AirVehicleState waypoint = %llu, currentWaypoint = %llu\n", airVehicleState->super.currentwaypoint, currentWaypoint);
 
-      if (currentWaypoint != airVehicleState->super.currentwaypoint) {
+	bool waypointInWindow = IsWaypointInWindow(automationResponse->missioncommandlist[0]->waypointlist,
+                                        		automationResponse->missioncommandlist[0]->waypointlist_ai.length,
+                                        		WINDOW_SIZE - WINDOW_OVERLAP,
+                                        		currentWaypoint,
+                                        		airVehicleState->super.currentwaypoint);
+
+//      if (currentWaypoint != airVehicleState->super.currentwaypoint) {
+      if (!waypointInWindow) {
 	currentWaypoint = airVehicleState->super.currentwaypoint;
 	if (automationResponse != NULL) {
 	  sendMissionCommand();

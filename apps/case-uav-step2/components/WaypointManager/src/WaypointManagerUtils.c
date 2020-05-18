@@ -23,36 +23,36 @@
  * Danger: global variables also read/written in waypoint_manager.c
  * TODO: Fix this.
  */
-int64_t currentWaypoint;
-int64_t currentCommand;
-bool returnHome;
-AutomationResponse * automationResponse;
-Waypoint * homeWaypoint;
+//int64_t currentWaypoint;
+//int64_t currentCommand;
+//bool returnHome;
+//AutomationResponse * automationResponse;
+//Waypoint * homeWaypoint;
 
-void initializeWaypointManager() {
-  currentWaypoint = 0;
-  currentCommand = INIT_CMD_ID;
-  returnHome = false;
-  automationResponse = NULL;
-  homeWaypoint = NULL;
-
-  lmcp_init_Waypoint(&homeWaypoint);
-  homeWaypoint->super.latitude = HOME_WAYPOINT_LAT;
-  homeWaypoint->super.longitude = HOME_WAYPOINT_LONG;
-  homeWaypoint->super.altitude = HOME_WAYPOINT_ALT;
-  homeWaypoint->super.altitudetype = 1;
-  homeWaypoint->number = HOME_WAYPOINT_NUM;
-  homeWaypoint->nextwaypoint = HOME_WAYPOINT_NUM;
-  homeWaypoint->speed = HOME_WAYPOINT_SPEED;
-  homeWaypoint->speedtype = 0;
-  homeWaypoint->climbrate = 0;
-  homeWaypoint->turntype = 0;
-  homeWaypoint->vehicleactionlist_ai.length = 0;
-  homeWaypoint->contingencywaypointa = 0;
-  homeWaypoint->contingencywaypointb = 0;
-  homeWaypoint->associatedtasks_ai.length = 0;
-
-}
+//void initializeWaypointManager() {
+//  currentWaypoint = 0;
+//  currentCommand = INIT_CMD_ID;
+//  returnHome = false;
+//  automationResponse = NULL;
+//  homeWaypoint = NULL;
+//
+//  lmcp_init_Waypoint(&homeWaypoint);
+//  homeWaypoint->super.latitude = HOME_WAYPOINT_LAT;
+//  homeWaypoint->super.longitude = HOME_WAYPOINT_LONG;
+//  homeWaypoint->super.altitude = HOME_WAYPOINT_ALT;
+//  homeWaypoint->super.altitudetype = 1;
+//  homeWaypoint->number = HOME_WAYPOINT_NUM;
+//  homeWaypoint->nextwaypoint = HOME_WAYPOINT_NUM;
+//  homeWaypoint->speed = HOME_WAYPOINT_SPEED;
+//  homeWaypoint->speedtype = 0;
+//  homeWaypoint->climbrate = 0;
+//  homeWaypoint->turntype = 0;
+//  homeWaypoint->vehicleactionlist_ai.length = 0;
+//  homeWaypoint->contingencywaypointa = 0;
+//  homeWaypoint->contingencywaypointb = 0;
+//  homeWaypoint->associatedtasks_ai.length = 0;
+//
+//}
 
 Waypoint * FindWaypoint(Waypoint ** ws,
                         uint16_t len,
@@ -64,6 +64,29 @@ Waypoint * FindWaypoint(Waypoint ** ws,
     }
   }
   return NULL;
+}
+
+
+bool IsWaypointInWindow( Waypoint ** waypointList,
+                      uint16_t waypointListSize,
+                      uint16_t windowSize,
+                      int64_t startId,
+                      int64_t id) {
+  int64_t nid = startId;
+  Waypoint * wp = NULL;
+
+  for (int i = 0; i < windowSize; i++) {
+    wp = FindWaypoint(waypointList, waypointListSize, nid);
+    if (wp != NULL) {
+      if (wp->number == id) {
+        return true;
+      }
+      nid = waypointList[i]->nextwaypoint;
+    } else {
+      return false;
+    }
+  }
+  return false;
 }
 
 
