@@ -86,7 +86,7 @@ assembly {
                     "0x10486000:0x1000:12"  // VCPU
         ];
         vmUxAS.untyped_mmios = [
-                    "0x48000000:27"  //RAM
+                    "0x50000000:27"  //RAM
         ];
         vmUxAS.irqs =  [];
         vmUxAS.dtb = dtb([{}]);
