@@ -66,7 +66,8 @@ assembly {
 
         component UxAS_VM vmUxAS;
         VM_COMPONENT_CONNECTIONS_DEF(UxAS)
-        VM_VIRTUAL_SERIAL_COMPOSITION_DEF(UxAS)
+
+        VM_VIRTUAL_SERIAL_COMPOSITION_DEF(Radio, UxAS)
 
         component AutopilotSerialServer autopilot_serial_server;
         component WaypointManager waypoint_manager;
