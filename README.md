@@ -33,7 +33,7 @@ following their instructions, summarized below.
 ~~~
 mkdir case-ta6-platform-assessment-camkes
 cd case-ta6-platform-assessment-camkes
-repo init -u https://github.com/kent-mcleod/camkes.git -b kent/aadl --depth=1 master.xml
+repo init -u https://github.com/kent-mcleod/camkes.git -b kent/aadl --depth=1 -m master.xml
 repo sync
 ~~~
 
