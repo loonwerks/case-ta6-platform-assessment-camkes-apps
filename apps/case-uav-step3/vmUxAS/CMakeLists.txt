@@ -181,7 +181,7 @@ ExternalProject_Get_property(UxAS_UxAS DOWNLOAD_DIR)
 message("Download dir of UxAS = ${DOWNLOAD_DIR}")
 MyAddExternalProjFilesToOverlay(
     UxAS_UxAS
-    ${DOWNLOAD_DIR}/UxAS-build
+    ${DOWNLOAD_DIR}/UxAS_UxAS-build
     overlay_uxas
     "home/uxas/build"
     FILES
@@ -189,7 +189,7 @@ MyAddExternalProjFilesToOverlay(
 )
 MyAddExternalProjFilesToOverlay(
     UxAS_UxAS
-    ${DOWNLOAD_DIR}/UxAS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch
+    ${DOWNLOAD_DIR}/UxAS_UxAS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch
     overlay_uxas
     "home/uxas/ex/p2/01_Waterway"
     FILES
@@ -197,7 +197,7 @@ MyAddExternalProjFilesToOverlay(
 )
 MyAddExternalProjFilesToOverlay(
     UxAS_UxAS
-    ${DOWNLOAD_DIR}/UxAS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch/InitMessages
+    ${DOWNLOAD_DIR}/UxAS_UxAS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch/InitMessages
     overlay_uxas
     "home/uxas/ex/p2/01_Waterway/InitMessages"
     FILES

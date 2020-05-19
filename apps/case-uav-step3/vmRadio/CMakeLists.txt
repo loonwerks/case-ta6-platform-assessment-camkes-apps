@@ -181,7 +181,7 @@ ExternalProject_Get_property(Radio_UxAS DOWNLOAD_DIR)
 message("Download dir of UxAS = ${DOWNLOAD_DIR}")
 MyAddExternalProjFilesToOverlay(
     Radio_UxAS
-    ${DOWNLOAD_DIR}/UxAS-build
+    ${DOWNLOAD_DIR}/Radio_UxAS-build
     overlay_radio
     "home/uxas/build"
     FILES
@@ -189,7 +189,7 @@ MyAddExternalProjFilesToOverlay(
 )
 MyAddExternalProjFilesToOverlay(
     Radio_UxAS
-    ${DOWNLOAD_DIR}/UxAS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch
+    ${DOWNLOAD_DIR}/Radio_UxAS/examples/CASE-TA6-Challenge-Problems/ph2_01_WaterwaySearch
     overlay_radio
     "home/uxas/ex/p2/01_Waterway"
     FILES
