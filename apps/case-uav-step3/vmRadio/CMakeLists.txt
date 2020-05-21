@@ -212,14 +212,6 @@ AddFileToOverlayDir(
     overlay_radio
 )
 
-# Add init.d file for starting UxAS as service.
-AddFileToOverlayDir(
-    "S98uxas"
-    ${CMAKE_CURRENT_SOURCE_DIR}/overlay_files/init_scripts/init.d/S98uxas
-    "etc/init.d"
-    overlay_radio
-)
-
 # Overwrite /etc/network/interfaces file.
 AddFileToOverlayDir(
     "interfaces"
