@@ -160,6 +160,30 @@ function(MyAddExternalProjFilesToOverlay external_target external_install_dir ov
 endfunction(MyAddExternalProjFilesToOverlay)
 
 ExternalProject_Add(
+    camkes_log_relay
+    SOURCE_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/camkes_log_relay
+    BINARY_DIR
+    ${CMAKE_CURRENT_BINARY_DIR}/camkes_log_relay
+    INSTALL_COMMAND
+    ""
+    BUILD_ALWAYS
+    ON
+    EXCLUDE_FROM_ALL
+    CMAKE_ARGS
+    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCAMKES_LOG_QUEUE_LIB=${CMAKE_CURRENT_SOURCE_DIR}/../camkes_log_queue -DCMAKE_C_FLAGS=${BASE_C_FLAGS}
+)
+
+AddExternalProjFilesToOverlay(
+    camkes_log_relay
+    ${CMAKE_CURRENT_BINARY_DIR}/camkes_log_relay
+    overlay
+    "usr/bin"
+    FILES
+    camkes_log_relay
+)
+
+ExternalProject_Add(
     Radio_UxAS
     GIT_REPOSITORY
     https://github.com/loonwerks/case-ta6-experimental-platform-OpenUxAS.git

@@ -18,6 +18,7 @@ find_package(camkes-vm-linux REQUIRED)
 camkes_arm_vm_import_project()
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/hexdump)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/camkes_log_queue)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/queue)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/AutopilotSerialServer)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/WaypointManager)
