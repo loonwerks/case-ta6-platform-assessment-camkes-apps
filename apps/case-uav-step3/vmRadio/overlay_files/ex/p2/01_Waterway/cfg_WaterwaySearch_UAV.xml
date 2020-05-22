@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft">
+<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft" UDPNetLoggerDestination="192.168.2.2:5577">
     <!-- Use TCP for wired --->
     <!-- Example network configuration:
          The addresses for the bridges configured herein assume the following
