@@ -174,10 +174,10 @@ ExternalProject_Add(
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCAMKES_LOG_QUEUE_LIB=${CMAKE_CURRENT_SOURCE_DIR}/../camkes_log_queue -DCMAKE_C_FLAGS=${BASE_C_FLAGS}
 )
 
-AddExternalProjFilesToOverlay(
+MyAddExternalProjFilesToOverlay(
     camkes_log_relay
     ${CMAKE_CURRENT_BINARY_DIR}/camkes_log_relay
-    overlay
+    overlay_radio
     "usr/bin"
     FILES
     camkes_log_relay
