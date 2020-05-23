@@ -100,10 +100,11 @@ int main(int argc, char *argv[])
     // put the host's address into the server address structure
     // memcpy((void *)&m_destinationSockaddr.sin_addr, hp->h_addr_list[0], hp->h_length);
 
-    char *destination_port = strtok(argv[2], ":");
+    char *destination_address = strtok(argv[2], ":");
+    char *destination_port = strtok(NULL, ":");
     memset((void *) &destination_sockaddr, 0, sizeof(struct sockaddr_in));
     destination_sockaddr.sin_family = AF_INET;
-    destination_sockaddr.sin_addr.s_addr = inet_addr(argv[2]);
+    destination_sockaddr.sin_addr.s_addr = inet_addr(destination_address);
     destination_sockaddr.sin_port = htons((destination_port != NULL) ? atoi(destination_port) : 5577);
     printf("camkes_log_relay: setting UDP destination to %s:%u\n",
         inet_ntoa(destination_sockaddr.sin_addr), (unsigned) ntohs(destination_sockaddr.sin_port));
