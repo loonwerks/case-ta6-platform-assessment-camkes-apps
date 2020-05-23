@@ -12,11 +12,13 @@ start() {
         chgrp uxas /dev/uio2
         chgrp uxas /dev/uio3
         chgrp uxas /dev/uio4
+        chgrp uxas /dev/uio5
         chmod g+rw /dev/uio0
         chmod g+rw /dev/uio1
         chmod g+rw /dev/uio2
         chmod g+rw /dev/uio3
         chmod g+rw /dev/uio4
+        chmod g+rw /dev/uio5
         chmod +x /home/uxas/ex/p2/01_Waterway/runUxAS_WaterwaySearch_UAV.sh
         start-stop-daemon -b -S -q -m -p /var/run/uxas.pid -c uxas --exec /home/uxas/ex/p2/01_Waterway/runUxAS_WaterwaySearch_UAV.sh >> uxas-stdout
         echo "OK"

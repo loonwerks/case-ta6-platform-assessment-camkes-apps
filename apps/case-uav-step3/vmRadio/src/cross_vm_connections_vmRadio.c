@@ -45,7 +45,6 @@ void line_search_task_out_ready_emit_underlying(void);
 extern dataport_caps_handle_t automation_request_out_crossvm_dp_handle;
 void automation_request_out_ready_emit_underlying(void); 
 
-
 extern dataport_caps_handle_t uxas_log_in_crossvm_dp_handle;
 seL4_Word uxas_log_in_done_notification_badge(void);
 

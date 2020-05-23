@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft">
+<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft" CAmkESLoggerDevice="/dev/uio5">
     <!-- Use Zyre for WiFi
     <Bridge Type="LmcpObjectNetworkZeroMqZyreBridge" NetworkDevice="ens33">
         <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
