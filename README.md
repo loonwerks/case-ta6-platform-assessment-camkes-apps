@@ -15,7 +15,7 @@ git clone https://github.com/SEL4PROJ/seL4-CAmkES-L4v-dockerfiles.git
 
 OpenUxAS uses the [meson build system](https://mesonbuild.com/) and this must be accessible when running the build
 described below.  But, it isn't installed by default in the docker containers for the CAmkES environment.  This may be
-easily remedied by adding it in the extras.dockerfile.  Edit seL4-CAmkES-L4v-dockerfiles/extras.dockerfile (using vi or
+easily remedied by adding it in the extras.dockerfile.  Edit seL4-CAmkES-L4v-dockerfiles/dockerfiles/extras.dockerfile (using vi or
 your favorite editor) and adding the lines at the end of the file.
 
 ~~~

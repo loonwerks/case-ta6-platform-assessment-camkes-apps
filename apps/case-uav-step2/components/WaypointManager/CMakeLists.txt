@@ -18,7 +18,6 @@ project(ComponentWaypointManager C)
 DeclareCAmkESComponent(WaypointManager
     SOURCES
     src/waypoint_manager.c
-    src/WaypointManagerUtils.c
     src/CMASI/AddressAttributedMessage.c
     src/CMASI/AirVehicleState.c
     src/CMASI/AutomationResponse.c
