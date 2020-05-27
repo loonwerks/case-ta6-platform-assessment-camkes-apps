@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft" UDPNetLoggerDestination="192.168.2.2:5577">
+<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft">
     <!-- Use Zyre for WiFi
     <Bridge Type="LmcpObjectNetworkZeroMqZyreBridge" NetworkDevice="ens33">
         <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
@@ -32,11 +32,11 @@
         <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
     </Bridge>
 
-    <!-- Connect to AMASE (see config folder in OpenAMASE) -->
+    <!-- Connect to AMASE (see config folder in OpenAMASE) -->    
     <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://192.168.2.2:5555" Server="FALSE">
         <SubscribeToMessage MessageType="afrl.cmasi.KeepInZone"/>
         <SubscribeToMessage MessageType="afrl.cmasi.KeepOutZone"/>
-        <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask" />
+<!--        <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask" /> -->
     </Bridge>
 
     <Service Type="StatusReportService" VehicleID="400" />

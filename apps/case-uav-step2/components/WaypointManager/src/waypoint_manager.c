@@ -28,7 +28,7 @@
 
 #define WINDOW_SIZE 15
 #define WINDOW_OVERLAP 5
-#define INIT_CMD_ID 72
+#define INIT_CMD_ID 101
 #define HOME_WAYPOINT_LAT 4631577348376571884UL     // 45.3364
 #define HOME_WAYPOINT_LONG 13861587297017124409UL   // -121.0032
 #define HOME_WAYPOINT_ALT 1143930880U               // 700.0
@@ -98,7 +98,7 @@ bool IsWaypointInWindow( Waypoint ** waypointList,
       if (wp->number == id) {
         return true;
       }
-      nid = waypointList[i]->nextwaypoint;
+      nid = wp->nextwaypoint;
     } else {
       return false;
     }
@@ -189,7 +189,6 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
   }
 
   AirVehicleState *airVehicleState = NULL;
-
   lmcp_init_AirVehicleState(&airVehicleState);
 
   if (airVehicleState != NULL) {
@@ -215,9 +214,7 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
 
       if (!waypointInWindow) {
 	      currentWaypoint = airVehicleState->super.currentwaypoint;
-        if (automationResponse != NULL) {
-          sendMissionCommand();
-        }
+        sendMissionCommand();
       }
 
     } else {
@@ -256,8 +253,6 @@ bool air_vehicle_state_in_event_data_poll(counter_t *numDropped, data_t *data) {
 void automation_response_in_event_data_receive_handler(counter_t numDropped, data_t *data) {
 
     printf("\n%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
-    // For testing, whenever we receive an automation response, send it out on the mission command out port
-    //mission_command_out_event_data_send(data);
     
     if (automationResponse != NULL) {
         lmcp_free_AutomationResponse(automationResponse, 1);
@@ -271,7 +266,7 @@ void automation_response_in_event_data_receive_handler(counter_t numDropped, dat
 
     if (msg_result == 0) {
 
-hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+        hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
         currentWaypoint = automationResponse->missioncommandlist[0]->firstwaypoint;
         sendMissionCommand();
@@ -358,13 +353,13 @@ void sendMissionCommand() {
     } else {
         // Construct mission window
         FillWindow( automationResponse->missioncommandlist[0]->waypointlist,
-                                        automationResponse->missioncommandlist[0]->waypointlist_ai.length,
-                                        currentWaypoint,
-                                        missionCommand->waypointlist,
-                                        WINDOW_SIZE);
+                    automationResponse->missioncommandlist[0]->waypointlist_ai.length,
+                    currentWaypoint,
+                    missionCommand->waypointlist,
+                    WINDOW_SIZE);
     }
 
-    missionCommand->firstwaypoint = missionCommand->waypointlist[0]->nextwaypoint;
+    missionCommand->firstwaypoint = currentWaypoint;
     AddressAttributedMessage * addressAttributedMessage = NULL;
 
     lmcp_init_AddressAttributedMessage(&addressAttributedMessage);
@@ -375,7 +370,7 @@ void sendMissionCommand() {
     if (data != NULL) {
       lmcp_pack_AddressAttributedMessage(data->payload, addressAttributedMessage);
 
-hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+      hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
       // Send it
       mission_command_out_event_data_send(data);
