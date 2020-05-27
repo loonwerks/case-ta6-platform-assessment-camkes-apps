@@ -147,7 +147,7 @@ assembly {
         VM_GENERAL_CONFIGURATION_DEF()
         VM_CONFIGURATION_DEF(Radio)
         VM_CONFIGURATION_DEF(UxAS)
-        VM_VIRTUAL_SERIAL_CONFIGURATION_DEF(Radio)
+        VM_VIRTUAL_SERIAL_CONFIGURATION_DEF(Radio, UxAS)
 
         vmRadio.cnode_size_bits = 18;
         vmRadio.simple_untyped21_pool = 12;
