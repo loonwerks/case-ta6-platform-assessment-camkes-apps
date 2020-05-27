@@ -26,24 +26,32 @@ null::sysinit:/bin/ln -sf /proc/self/fd/1 /dev/stdout
 null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 ::sysinit:/bin/hostname -F /etc/hostname
 # now run any rc scripts
+::sysinit:chmod +x /etc/wait_for_eth0.sh
 ::sysinit:/etc/init.d/rcS
 
 # Put a getty on the serial port
 hvc0:2345:respawn:/sbin/getty -L 9600 hvc0
 
+# Wait for devices
+::wait:sh -c "while [ ! -c /dev/uio0 ]; do echo \"Waiting for /dev/uio0\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio1 ]; do echo \"Waiting for /dev/uio1\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio2 ]; do echo \"Waiting for /dev/uio2\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio3 ]; do echo \"Waiting for /dev/uio3\"; sleep 2; done;"
+::wait:/etc/wait_for_eth0.sh
+
 # Configure for UxAS user
-::sysinit:adduser uxas -H -D
-::sysinit:chown -R uxas:uxas /home/uxas
+::wait:adduser uxas -H -D
+::wait:chown -R uxas:uxas /home/uxas
+::wait:chgrp uxas /dev/uio0
+::wait:chgrp uxas /dev/uio1
+::wait:chgrp uxas /dev/uio2
+::wait:chgrp uxas /dev/uio3
+::wait:chmod g+rw /dev/uio0
+::wait:chmod g+rw /dev/uio1
+::wait:chmod g+rw /dev/uio2
+::wait:chmod g+rw /dev/uio3
 
 # Run UxAS
-::sysinit:chgrp uxas /dev/uio0
-::sysinit:chgrp uxas /dev/uio1
-::sysinit:chgrp uxas /dev/uio2
-::sysinit:chgrp uxas /dev/uio3
-::sysinit:chmod g+rw /dev/uio0
-::sysinit:chmod g+rw /dev/uio1
-::sysinit:chmod g+rw /dev/uio2
-::sysinit:chmod g+rw /dev/uio3
 ::respawn:su uxas -c "/usr/bin/camkes_log_relay /dev/uio3 192.168.2.2:5578"
 ::respawn:su uxas -c "cd /home/uxas/ex/p2/01_Waterway && /home/uxas/build/uxas -cfgPath /home/uxas/ex/p2/01_Waterway/cfg_WaterwaySearch_UAV.xml"
 

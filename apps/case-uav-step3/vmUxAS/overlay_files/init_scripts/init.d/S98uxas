@@ -7,6 +7,12 @@
 
 start() {
         printf "Starting OpenUxAS: "
+        while [ ! -c /dev/uio0 ]; do echo "Waiting for /dev/uio0"; sleep 2; done;
+        while [ ! -c /dev/uio1 ]; do echo "Waiting for /dev/uio1"; sleep 2; done;
+        while [ ! -c /dev/uio2 ]; do echo "Waiting for /dev/uio2"; sleep 2; done;
+        while [ ! -c /dev/uio3 ]; do echo "Waiting for /dev/uio3"; sleep 2; done;
+        while [ ! -c /dev/uio4 ]; do echo "Waiting for /dev/uio4"; sleep 2; done;
+        while [ ! -c /dev/uio5 ]; do echo "Waiting for /dev/uio5"; sleep 2; done;
         chgrp uxas /dev/uio0
         chgrp uxas /dev/uio1
         chgrp uxas /dev/uio2
