@@ -66,7 +66,7 @@ typedef struct camkes_log_data {
 // Note: One cell in the queue is always considered dirty. Its the next
 // element to be written. Thus the queue can only contain QUEUE_SIZE-1
 // elements.
-#define QUEUE_SIZE 16
+#define CAMKES_LOG_QUEUE_SIZE 16
 
 // This is the type of the seL4 dataport (shared memory) that is shared by the
 // sender and all receivers. This type is referenced in the sender and receiver
@@ -81,7 +81,7 @@ typedef struct camkes_log_queue {
   _Atomic camkes_log_counter_t numSent;
   // Queue of elements of type data_t (see data.h) implemented as a ring buffer.
   // No initialization necessary.
-  camkes_log_data_t elt[QUEUE_SIZE];
+  camkes_log_data_t elt[CAMKES_LOG_QUEUE_SIZE];
 } camkes_log_queue_t;
 
 //------------------------------------------------------------------------------
