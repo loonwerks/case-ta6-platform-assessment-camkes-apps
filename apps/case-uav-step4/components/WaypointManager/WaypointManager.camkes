@@ -1,0 +1,37 @@
+/*
+ * Copyright 2017, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
+ *
+ * Copyright 2020 Collins Aerospace
+ * Modifications made to original
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 3-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD3.txt" for details.
+ */
+
+component WaypointManager {
+    include <queue.h>;
+    control;
+
+    // automation_response_in - AADL Event Data Port (in) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    consumes SendEvent automation_response_in_SendEvent;
+    dataport queue_t automation_response_in_queue;
+
+    // air_vehicle_state_in - AADL Event Data Port (in) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    consumes SendEvent air_vehicle_state_in_SendEvent;
+    dataport queue_t air_vehicle_state_in_queue;
+
+    // mission_command_out - AADL Event Data Port (out) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    emits SendEvent mission_command_out_SendEvent;
+    dataport queue_t mission_command_out_queue;
+
+    /* Size of the driver's heap */
+    attribute int heap_size = 1024 * 1024;
+
+}
+
