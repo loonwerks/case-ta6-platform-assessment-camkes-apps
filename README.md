@@ -78,6 +78,12 @@ The step 1 ground station application builds a seL4 image containing a single vi
 device is mapped through to the VM and the VM contains OpenUxAS and configuration files to run as the ground station
 from the waterway search example.
 
+### case-gs-step2
+
+The step 2 ground station application builds a seL4 image containing a single virtual machine.  The hardware ethernet
+device is mapped through to the VM and the VM contains OpenUxAS and configuration files to run as the ground station
+from the waterway search example.  The VM also contains the User Attestation Manager.
+
 ### case-uav-step1
 
 The step 1 unmanned air vehicle application builds a seL4 image containing a single virtual machine.  The hardware ethernet
@@ -89,16 +95,27 @@ from the waterway search example.
 The step 2 unmanned air vehicle application builds a seL4 image containing a single virtual machine with the UxAS Waypoint
 Plan Manager Service and the autopilot (modeled by AMASE) via a serial port moved into native CAmkES components.  The hardware
 ethernet device is mapped through to the VM and the VM contains OpenUxAS and configuration files to run as the unmanned air
-vehicle from the
-waterway search example.
+vehicle from the waterway search example.
 
 ### case-uav-step3
 
-The step 3 unmanned air vehicle application extends the case-uav-step2 application be separating the UxAS virtual machine into
+The step 3 unmanned air vehicle application extends the case-uav-step2 application by separating the UxAS virtual machine into
 two machines, one modeling the Radio and the other containing the UxAS services.  The hardware ethernet device is mapped
 through to the VM modeling the radio.  Thus, the VM containing OpenUxAS has no direct communication with the outside world;
 all communications are through other components and via seL4 connections where monitors filters and other guards may be
 installed.
+
+### case-uav-step4
+
+The step 4 unmanned air vehicle application extends the case-uav-step3 application by including the following high-assurance 
+components: Attestation Gate, Operating Region Filter, Line Search Task Filter, Automation Request Filter, Response Monitor, 
+and Geofence Monitor.  The cuurrent behavior of the high-assurance components is to pass messages straight through with no 
+processing.
+
+### case-uav-step5
+
+The step 5 unmanned air vehicle application extends the case-uav-step3 application by including the Attestation Manager in the 
+Radio VM.
 
 ## Installing on ODROID-XU4
 
