@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft" CAmkESLoggerDevice="/dev/uio5">
+    <!-- Use Zyre for WiFi
+    <Bridge Type="LmcpObjectNetworkZeroMqZyreBridge" NetworkDevice="ens33">
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.LineSearchTask"/>
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.AutomationRequest"/>
+    </Bridge>
+    -->
+
+    <!-- Use TCP for wired --->
+    <!-- Example network configuration:
+         The addresses for the bridges configured herein assume the following
+         network addresses.  You may need to change them if your network
+         differs.
+            AMASE host 192.168.2.2
+            UxAS Ground Station 192.168.2.5
+            UxAS Air Vehicle 192.168.2.7
+    --->
+    <!--
+    <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://0.0.0.0:5556" Server="TRUE">
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.LineSearchTask"/>
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.AutomationRequest"/>
+    </Bridge>
+    -->
+
+    <!-- CAmkES bridges
+      /dev/uio0 : receiver from radio operating region port
+      /dev/uio1 : receiver from radio line search task port
+      /dev/uio2 : receiver from radio automation request port
+      /dev/uio3 : transmitter to waypoint manager automation response port
+      /dev/uio4 : receiver from autopilot serial server air vehicle state port
+    -->
+    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio0" />
+    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio1" />
+    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio2" />
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio3">
+        <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
+        <SubscribeToMessage MessageType="afrl.cmasi.MissionCommand"/>
+    </Bridge>
+    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio4" />
+
+    <!-- Connect to AMASE (see config folder in OpenAMASE) -->
+    <!--
+    <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://192.168.2.2:5555" Server="FALSE">
+        <SubscribeToMessage MessageType="afrl.cmasi.KeepInZone"/>
+        <SubscribeToMessage MessageType="afrl.cmasi.KeepOutZone"/>
+        <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask" />
+    </Bridge>
+    -->
+
+    <Service Type="StatusReportService" VehicleID="400" />
+    <Service Type="Test_SimulationTime"/>
+    <Service Type="TaskManagerService"/>
+    <Service Type="AutomationRequestValidatorService"/>
+    <Service Type="RoutePlannerVisibilityService" TurnRadiusOffset_m="0.0" MinimumWaypointSeparation_m="50.0"/>
+    <Service Type="RouteAggregatorService" />
+    <Service Type="AssignmentTreeBranchBoundService" NumberNodesMaximum="0" CostFunction="MINMAX" />   
+    <Service Type="ZeroizeConditionRecognizerService" VehicleID="400" />
+    <Service Type="WaypointPlanManagerService" VehicleID="400" NumberWaypointsToServe="15" NumberWaypointsOverlap="5"
+             DefaultLoiterRadius_m="250"  param.turnType="FlyOver" AddLoiterToEndOfSegments="FALSE"
+             AddLoiterToEndOfMission="FALSE" LoopBackToFirstTask="FALSE" GimbalPayloadId="1"/>
+    <Service Type="PlanBuilderService" AssignmentStartPointLead_m="0.0"/>
+
+    <!-- Internal initialization messages, state and capabilities intrinsic to UAV -->
+    <Service Type="SendMessagesService" PathToMessageFiles="../InitMessages/">
+        <Message MessageFileName="AirVehicleState_V400.xml" SendTime_ms="20"/>
+        <Message MessageFileName="MissionCommand_V400.xml" SendTime_ms="30"/>
+    </Service>
+
+    <!-- Internal configuration messages, to be obtained from a trusted data store -->
+    <Service Type="SendMessagesService" PathToMessageFiles="../InitMessages/">
+        <Message MessageFileName="AirVehicleConfiguration_V400.xml" SendTime_ms="10"/>
+        <Message MessageFileName="KeepInZone_334.xml" SendTime_ms="40"/>
+        <Message MessageFileName="KeepOutZone_335.xml" SendTime_ms="50"/>
+    </Service>
+
+</UxAS>
+
+

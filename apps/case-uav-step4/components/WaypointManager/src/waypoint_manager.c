@@ -238,14 +238,6 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
 
 }
 
-//------------------------------------------------------------------------------
-// Implementation of AADL Input Event Data Port (in) named "p1_in"
-// Three styles: poll, wait and callback.
-//
-// Callback would typically be avoid for safety critical systems. It is harder
-// to analyze since the callback handler is run on some arbitrary thread.
-//
-// NOTE: If we only need polling style receivers, we can get rid of SendEvent
 
 recv_queue_t airVehicleStateInRecvQueue;
 
@@ -286,20 +278,28 @@ void automation_response_in_event_data_receive_handler(counter_t numDropped, dat
 
 }
 
-//------------------------------------------------------------------------------
-// Implementation of AADL Input Event Data Port (in) named "p1_in"
-// Three styles: poll, wait and callback.
-//
-// Callback would typically be avoid for safety critical systems. It is harder
-// to analyze since the callback handler is run on some arbitrary thread.
-//
-// NOTE: If we only need polling style receivers, we can get rid of SendEvent
 
 recv_queue_t automationResponseInRecvQueue;
 
 // Assumption: only one thread is calling this and/or reading p1_in_recv_counter.
 bool automation_response_in_event_data_poll(counter_t *numDropped, data_t *data) {
     return queue_dequeue(&automationResponseInRecvQueue, numDropped, data);
+}
+
+
+
+void return_home_in_event_data_receive_handler(counter_t numDropped, data_t *data) {
+
+    printf("\n%s: received return home: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
+
+}
+
+
+recv_queue_t returnHomeInRecvQueue;
+
+// Assumption: only one thread is calling this and/or reading p1_in_recv_counter.
+bool return_home_in_event_data_poll(counter_t *numDropped, data_t *data) {
+    return queue_dequeue(&returnHomeInRecvQueue, numDropped, data);
 }
 
 
@@ -314,12 +314,7 @@ static void done_emit(void) {
 }
 
 
-//------------------------------------------------------------------------------
-// Implementation of AADL Input Event Data Port (out) named "mission_command_out"
-//
-// NOTE: If we only need polling style receivers, we can get rid of the SendEvent
 
-// Assumption: only one thread is calling this and/or reading mission_command_out_recv_counter.
 void mission_command_out_event_data_send(data_t *data) {
     queue_enqueue(mission_command_out_queue, data);
     mission_command_out_SendEvent_emit();
@@ -355,7 +350,7 @@ void sendMissionCommand() {
     missionCommand->waypointlist = malloc(sizeof(Waypoint*) * WINDOW_SIZE);
 
     if (returnHome) {
-        currentWaypoint = HOME_WAYPOINT_NUM;
+	currentWaypoint = HOME_WAYPOINT_NUM;
         // Set mission window waypoints to home
         for (int i = 0; i < WINDOW_SIZE; i++) {
             missionCommand->waypointlist[i] = homeWaypoint;
@@ -403,6 +398,11 @@ void run_poll(void) {
     while (true) {
 
         bool dataReceived = false;
+
+	dataReceived = return_home_in_event_data_poll(&numDropped, &data);
+	if (dataReceived) {
+	    returnHome = true;
+	}
         
         if (automationResponse != NULL) {
           dataReceived = air_vehicle_state_in_event_data_poll(&numDropped, &data);
@@ -426,6 +426,7 @@ void run_poll(void) {
 void post_init(void) {
     recv_queue_init(&airVehicleStateInRecvQueue, air_vehicle_state_in_queue);
     recv_queue_init(&automationResponseInRecvQueue, automation_response_in_queue);
+    recv_queue_init(&returnHomeInRecvQueue, return_home_in_queue);
     queue_init(mission_command_out_queue);
 }
 
