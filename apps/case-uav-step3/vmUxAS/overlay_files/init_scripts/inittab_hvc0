@@ -25,12 +25,37 @@ null::sysinit:/bin/ln -sf /proc/self/fd/0 /dev/stdin
 null::sysinit:/bin/ln -sf /proc/self/fd/1 /dev/stdout
 null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 ::sysinit:/bin/hostname -F /etc/hostname
-# Configure for UxAS user
-::sysinit:adduser uxas -H -D
-::sysinit:chown -R uxas:uxas /home/uxas
+
 # now run any rc scripts
 ::sysinit:chmod 755 /etc/init.d/S98uxas
 ::sysinit:/etc/init.d/rcS
+
+# Wait for devices
+::wait:sh -c "while [ ! -c /dev/uio0 ]; do echo \"Waiting for /dev/uio0\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio1 ]; do echo \"Waiting for /dev/uio1\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio2 ]; do echo \"Waiting for /dev/uio2\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio3 ]; do echo \"Waiting for /dev/uio3\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio4 ]; do echo \"Waiting for /dev/uio4\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio5 ]; do echo \"Waiting for /dev/uio5\"; sleep 2; done;"
+
+# Configure for UxAS user
+::wait:adduser uxas -H -D
+::wait:chown -R uxas:uxas /home/uxas
+::wait:chgrp uxas /dev/uio0
+::wait:chgrp uxas /dev/uio1
+::wait:chgrp uxas /dev/uio2
+::wait:chgrp uxas /dev/uio3
+::wait:chgrp uxas /dev/uio4
+::wait:chgrp uxas /dev/uio5
+::wait:chmod g+rw /dev/uio0
+::wait:chmod g+rw /dev/uio1
+::wait:chmod g+rw /dev/uio2
+::wait:chmod g+rw /dev/uio3
+::wait:chmod g+rw /dev/uio4
+::wait:chmod g+rw /dev/uio5
+
+# Run UxAS
+::respawn:su uxas -c "mkdir -p /home/uxas/ex/p2/01_Waterway/RUNDIR && cd /home/uxas/ex/p2/01_Waterway/RUNDIR && /home/uxas/build/uxas -cfgPath /home/uxas/ex/p2/01_Waterway/cfg_WaterwaySearch_UAV.xml"
 
 # Put a getty on the serial port
 hvc0:2345:respawn:/sbin/getty -L 9600 hvc0
