@@ -24,6 +24,10 @@ RUN apt-get update -q \
     && apt-get clean autoclean \
     && apt-get autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
+RUN curl https://cakeml.org/cake-x64-32.tar.gz > cake-x64-32.tar.gz \
+    && tar -xvzf cake-x64-32.tar.gz && cd cake-x64-32 && make cake \
+    && mv cake /usr/bin/cake32
 ~~~
 
 Building the platform assessment applications requires use of [CAmkES](https://docs.sel4.systems/projects/camkes/)
