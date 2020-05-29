@@ -206,15 +206,24 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
         return;
       }
 
-	    bool waypointInWindow = IsWaypointInWindow(automationResponse->missioncommandlist[0]->waypointlist,
-                                        		automationResponse->missioncommandlist[0]->waypointlist_ai.length,
-                                        		WINDOW_SIZE - WINDOW_OVERLAP,
-                                        		currentWaypoint,
-                                        		airVehicleState->super.currentwaypoint);
+      // Check to see if we need to return home
+      if (returnHome) {
+        if (airVehicleState->super.currentwaypoint != HOME_WAYPOINT_NUM) {
+          currentWaypoint = HOME_WAYPOINT_NUM;
+          sendMissionCommand();
+        }
+      } else {
 
-      if (!waypointInWindow) {
-	      currentWaypoint = airVehicleState->super.currentwaypoint;
-        sendMissionCommand();
+        bool waypointInWindow = IsWaypointInWindow(automationResponse->missioncommandlist[0]->waypointlist,
+                                              automationResponse->missioncommandlist[0]->waypointlist_ai.length,
+                                              WINDOW_SIZE - WINDOW_OVERLAP,
+                                              currentWaypoint,
+                                              airVehicleState->super.currentwaypoint);
+
+        if (!waypointInWindow) {
+          currentWaypoint = airVehicleState->super.currentwaypoint;
+          sendMissionCommand();
+        }
       }
 
     } else {
@@ -346,6 +355,7 @@ void sendMissionCommand() {
     missionCommand->waypointlist = malloc(sizeof(Waypoint*) * WINDOW_SIZE);
 
     if (returnHome) {
+        currentWaypoint = HOME_WAYPOINT_NUM;
         // Set mission window waypoints to home
         for (int i = 0; i < WINDOW_SIZE; i++) {
             missionCommand->waypointlist[i] = homeWaypoint;
