@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft" CAmkESLoggerDevice="/dev/uio5">
+<UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft">
+<!-- <UxAS FormatVersion="1.0" EntityID="400"  EntityType="Aircraft" CAmkESLoggerDevice="/dev/uio5"> -->
     <!-- Use Zyre for WiFi
     <Bridge Type="LmcpObjectNetworkZeroMqZyreBridge" NetworkDevice="ens33">
         <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
@@ -32,14 +33,22 @@
       /dev/uio3 : transmitter to waypoint manager automation response port
       /dev/uio4 : receiver from autopilot serial server air vehicle state port
     -->
-    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio0" />
-    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio1" />
-    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio2" />
+    <Bridge Type="LmcpObjectNetworkCamkesMultiReceiverBridge">
+        <CAmkESDevice DeviceName="/dev/uio4" />
+        <CAmkESDevice DeviceName="/dev/uio0" />
+        <CAmkESDevice DeviceName="/dev/uio1" />
+        <CAmkESDevice DeviceName="/dev/uio2" />
+    </Bridge>
     <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio3">
         <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
         <SubscribeToMessage MessageType="afrl.cmasi.MissionCommand"/>
     </Bridge>
+    <!--
+    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio0" />
+    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio1" />
+    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio2" />
     <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio4" />
+    -->
 
     <!-- Connect to AMASE (see config folder in OpenAMASE) -->
     <!--
