@@ -95,7 +95,7 @@ assembly {
         connection seL4SharedDataWithCaps data_conn_01(from vmRadio.operating_region_out_crossvm_dp, to attestation_gate.operating_region_in_queue);
 
         connection seL4Notification event_conn_02(from vmRadio.line_search_task_out_ready, to attestation_gate.line_search_task_in_SendEvent);
-        connection seL4SharedDataWithCaps data_conn_02(from vmRadio.line_search_task_out_crossvm_dp, to vmUxAS.line_search_task_in_queue);
+        connection seL4SharedDataWithCaps data_conn_02(from vmRadio.line_search_task_out_crossvm_dp, to attestation_gate.line_search_task_in_queue);
 
         connection seL4Notification event_conn_03(from vmRadio.automation_request_out_ready, to attestation_gate.automation_request_in_SendEvent);
         connection seL4SharedDataWithCaps data_conn_03(from vmRadio.automation_request_out_crossvm_dp, to attestation_gate.automation_request_in_queue);
