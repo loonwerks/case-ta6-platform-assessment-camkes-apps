@@ -38,12 +38,6 @@ size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)
   }
   ssize_t end_of_attr_delim_offset = end_of_attr_delim - buffer;
   
-  void *end_of_message_delim = memchr(end_of_attr_delim + 1, addr_attr_delim, buffer_length - end_of_attr_delim_offset - 1);
-  if (end_of_message_delim == NULL || end_of_message_delim == buffer + buffer_length - 1) {
-    errno = -3;
-    return 0;
-  }
-  
   const size_t lmcp_control_string_size = 4;
   const size_t checksum_size = 4;
 
