@@ -17,6 +17,7 @@ import <TimeServer/TimeServer.camkes>;
 import <vm-connectors.camkes>;
 import <devices.camkes>;
 
+import "components/AttestationGate/AttestationGate.camkes";
 import "components/AutopilotSerialServer/AutopilotSerialServer.camkes";
 import "components/WaypointManager/WaypointManager.camkes";
 
@@ -35,6 +36,9 @@ component Radio_VM {
 
     dataport queue_t uxas_log_in_crossvm_dp;
     maybe consumes SendEvent uxas_log_in_done;
+
+    dataport queue_t attestation_id_list_out_crossvm_dp;
+    emits SendEvent attestation_id_list_out_ready;
 }
 
 
@@ -75,6 +79,7 @@ assembly {
 
         VM_VIRTUAL_SERIAL_COMPOSITION_DEF(Radio, UxAS)
 
+        component AttestationGate attestation_gate;
         component AutopilotSerialServer autopilot_serial_server;
         component WaypointManager waypoint_manager;
 
@@ -102,6 +107,9 @@ assembly {
         connection seL4GlobalAsynch event_conn_8(from vmUxAS.uxas_log_out_ready, to vmRadio.uxas_log_in_done);
         connection seL4SharedDataWithCaps cross_vm_conn_8(from vmUxAS.uxas_log_out_crossvm_dp, to vmRadio.uxas_log_in_crossvm_dp);
 
+        connection seL4GlobalAsynch event_conn_9(from vmRadio.attestation_id_list_out_ready, to attestation_gate.trusted_ids_in_SendEvent);
+        connection seL4SharedDataWithCaps cross_vm_conn_9(from vmRadio.attestation_id_list_out_crossvm_dp, to attestation_gate.trusted_ids_in_queue);
+
         connection seL4VMDTBPassthrough vmRadio_dtb(from vmRadio.dtb_self, to vmRadio.dtb);
         connection seL4VMDTBPassthrough vmUxAS_dtb(from vmUxAS.dtb_self, to vmUxAS.dtb);
 
@@ -116,6 +124,22 @@ assembly {
         cross_vm_conn_6.size = 32768;
         cross_vm_conn_7.size = 32768;
         cross_vm_conn_8.size = 32768;
+        cross_vm_conn_9.size = 32768;
+
+        attestation_gate.trusted_ids_in_queue_access = "R";
+        attestation_gate.trusted_ids_in_SendEvent_domain = 3;
+        attestation_gate.operating_region_in_queue_access = "R";
+        attestation_gate.operating_region_in_SendEvent_domain = 3;
+        attestation_gate.line_search_task_in_queue_access = "R";
+        attestation_gate.line_search_task_in_SendEvent_domain = 3;
+        attestation_gate.automation_request_in_queue_access = "R";
+        attestation_gate.automation_request_in_SendEvent_domain = 3;
+        attestation_gate.operating_region_out_queue_access = "W";
+        attestation_gate.line_search_task_out_queue_access = "W";
+        attestation_gate.automation_request_out_queue_access = "W";
+        attestation_gate.serial_getchar_shmem_size = 0x1000;
+        attestation_gate._priority = 50;
+        attestation_gate._domain = 3;
 
         autopilot_serial_server.mission_command_in_queue_access = "R";
         autopilot_serial_server.mission_command_in_SendEvent_domain = 1;
@@ -132,6 +156,7 @@ assembly {
         waypoint_manager._priority = 50;
         waypoint_manager._domain = 2;
 
+        vmRadio.attestation_id_list_out_crossvm_dp = "W";
         vmRadio.operating_region_out_crossvm_dp = "W";
         vmRadio.line_search_task_out_crossvm_dp = "W";
         vmRadio.automation_request_out_crossvm_dp = "W";
