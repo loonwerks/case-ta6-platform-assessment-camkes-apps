@@ -265,7 +265,7 @@ void automation_response_in_event_data_receive_handler(counter_t numDropped, dat
 
     int msg_result = lmcp_process_msg(&payload, sizeof(data->payload), (lmcp_object**)&automationResponse);
 
-    if (msg_result == 0) {
+    if (msg_result == 0 && automationResponse->missioncommandlist_ai.length > 0) {
 
         hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
@@ -274,6 +274,8 @@ void automation_response_in_event_data_receive_handler(counter_t numDropped, dat
 
     } else {
       printf("%s: automation response rx handler: failed processing message into structure\n", get_instance_name()); fflush(stdout);
+      lmcp_free_AutomationResponse(automationResponse, 1);
+      automationResponse = NULL;
     }
 
 }
@@ -399,10 +401,10 @@ void run_poll(void) {
 
         bool dataReceived = false;
 
-	dataReceived = return_home_in_event_data_poll(&numDropped, &data);
-	if (dataReceived) {
-	    returnHome = true;
-	}
+        dataReceived = return_home_in_event_data_poll(&numDropped, &data);
+        if (dataReceived) {
+            returnHome = true;
+        }
         
         if (automationResponse != NULL) {
           dataReceived = air_vehicle_state_in_event_data_poll(&numDropped, &data);
