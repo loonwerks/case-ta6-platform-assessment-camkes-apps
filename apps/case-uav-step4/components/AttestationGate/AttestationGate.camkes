@@ -38,17 +38,17 @@ component AttestationGate {
 
     // operating_region_out - AADL Event Data Port (in) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
-    consumes SendEvent operating_region_out_SendEvent;
+    emits SendEvent operating_region_out_SendEvent;
     dataport queue_t operating_region_out_queue;
 
     // line_search_task_out - AADL Event Data Port (in) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
-    consumes SendEvent line_search_task_out_SendEvent;
+    emits SendEvent line_search_task_out_SendEvent;
     dataport queue_t line_search_task_out_queue;
 
     // automation_request_out - AADL Event Data Port (in) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
-    consumes SendEvent automation_request_out_SendEvent;
+    emits SendEvent automation_request_out_SendEvent;
     dataport queue_t automation_request_out_queue;
 
 

@@ -35,7 +35,7 @@ void operating_region_in_event_data_receive(counter_t numDropped, data_t *data) 
 recv_queue_t operatingRegionInRecvQueue;
 
 // Assumption: only one thread is calling this and/or reading p1_in_recv_counter.
-bool operation_region_in_event_data_poll(counter_t *numDropped, data_t *data) {
+bool operating_region_in_event_data_poll(counter_t *numDropped, data_t *data) {
     return queue_dequeue(&operatingRegionInRecvQueue, numDropped, data);
 }
 

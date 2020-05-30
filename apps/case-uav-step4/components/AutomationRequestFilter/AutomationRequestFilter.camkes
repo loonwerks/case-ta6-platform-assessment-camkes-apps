@@ -22,7 +22,9 @@ component AutomationRequestFilter {
 
     // automation_request_out - AADL Event Data Port (out) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
-    emits SendEvent automation_request_out_SendEvent;
-    dataport queue_t automation_request_out_queue;
+    emits SendEvent automation_request_out_1_SendEvent;	// to vm
+    dataport queue_t automation_request_out_1_queue;
+    emits SendEvent automation_request_out_2_SendEvent;
+    dataport queue_t automation_request_out_2_queue;
 }
 

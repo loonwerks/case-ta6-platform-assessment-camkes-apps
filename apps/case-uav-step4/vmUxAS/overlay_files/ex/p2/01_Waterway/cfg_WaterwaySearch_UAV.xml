@@ -37,9 +37,14 @@
     <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio2" />
     <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio3">
         <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
-        <SubscribeToMessage MessageType="afrl.cmasi.MissionCommand"/>
     </Bridge>
-    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio4" />
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio4">
+        <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
+    </Bridge>
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio5">
+        <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
+    </Bridge>
+    <Bridge Type="LmcpObjectNetworkCamkesReceiverBridge" DeviceName="/dev/uio6" />
 
     <!-- Connect to AMASE (see config folder in OpenAMASE) -->
     <!--
@@ -57,10 +62,12 @@
     <Service Type="RoutePlannerVisibilityService" TurnRadiusOffset_m="0.0" MinimumWaypointSeparation_m="50.0"/>
     <Service Type="RouteAggregatorService" />
     <Service Type="AssignmentTreeBranchBoundService" NumberNodesMaximum="0" CostFunction="MINMAX" />   
-    <Service Type="ZeroizeConditionRecognizerService" VehicleID="400" />
+<!--    
+    <Service Type="ZeroizeConditionRecognizerService" VehicleID="400" /> 
     <Service Type="WaypointPlanManagerService" VehicleID="400" NumberWaypointsToServe="15" NumberWaypointsOverlap="5"
              DefaultLoiterRadius_m="250"  param.turnType="FlyOver" AddLoiterToEndOfSegments="FALSE"
              AddLoiterToEndOfMission="FALSE" LoopBackToFirstTask="FALSE" GimbalPayloadId="1"/>
+-->
     <Service Type="PlanBuilderService" AssignmentStartPointLead_m="0.0"/>
 
     <!-- Internal initialization messages, state and capabilities intrinsic to UAV -->
