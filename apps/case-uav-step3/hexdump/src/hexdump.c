@@ -33,9 +33,24 @@ void fhexdump(FILE *stream, const char *prefix, size_t max_line_len, const uint8
   if (printables != NULL) free(printables);
 }
 
+void hexdump_raw(size_t max_line_len, const uint8_t* data, size_t datalen) {
+
+  size_t offset = 0, line_offset = 0;
+  printf("\n");
+  for (; line_offset < datalen; line_offset += max_line_len) {
+    for (; offset < datalen && offset < line_offset + max_line_len; ++offset) {
+      printf("%02X ", data[offset]);
+    }
+    printf("\n");
+  }
+  printf("\n");
+  fflush(stdout);
+}
+
 
 void hexdump(const char *prefix, size_t max_line_len, const uint8_t* data, size_t datalen) {
   fhexdump(stdout, prefix, max_line_len, data, datalen);
+  fflush(stdout);
 }
 
 
