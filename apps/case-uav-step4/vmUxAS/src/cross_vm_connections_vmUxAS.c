@@ -38,7 +38,7 @@
 //    emits SendEvent uxas_log_out_ready;
 
 
-#define NUM_CONNECTIONS 6
+#define NUM_CONNECTIONS 8
 static struct camkes_crossvm_connection connections[NUM_CONNECTIONS];
 
 // these are defined in the dataport's glue code
@@ -51,8 +51,14 @@ seL4_Word line_search_task_in_done_notification_badge(void);
 extern dataport_caps_handle_t automation_request_in_crossvm_dp_handle;
 seL4_Word automation_request_in_done_notification_badge(void);
 
-extern dataport_caps_handle_t automation_response_out_crossvm_dp_handle;
-void automation_response_out_ready_emit_underlying(void); 
+extern dataport_caps_handle_t automation_response_out_1_crossvm_dp_handle;
+void automation_response_out_1_ready_emit_underlying(void); 
+
+extern dataport_caps_handle_t automation_response_out_2_crossvm_dp_handle;
+void automation_response_out_2_ready_emit_underlying(void); 
+
+extern dataport_caps_handle_t automation_response_out_3_crossvm_dp_handle;
+void automation_response_out_3_ready_emit_underlying(void); 
 
 extern dataport_caps_handle_t air_vehicle_state_in_crossvm_dp_handle;
 seL4_Word air_vehicle_state_in_done_notification_badge(void);
@@ -89,18 +95,30 @@ void init_cross_vm_connections(vm_t *vm, void *cookie)
     };
 
     connections[3] = (struct camkes_crossvm_connection) {
-        .handle = &automation_response_out_crossvm_dp_handle,
-        .emit_fn = automation_response_out_ready_emit_underlying,
+        .handle = &automation_response_out_1_crossvm_dp_handle,
+        .emit_fn = automation_response_out_1_ready_emit_underlying,
         .consume_badge = -1
     };
 
     connections[4] = (struct camkes_crossvm_connection) {
+        .handle = &automation_response_out_2_crossvm_dp_handle,
+        .emit_fn = automation_response_out_2_ready_emit_underlying,
+        .consume_badge = -1
+    };
+
+    connections[5] = (struct camkes_crossvm_connection) {
+        .handle = &automation_response_out_3_crossvm_dp_handle,
+        .emit_fn = automation_response_out_3_ready_emit_underlying,
+        .consume_badge = -1
+    };
+
+    connections[6] = (struct camkes_crossvm_connection) {
         .handle = &air_vehicle_state_in_crossvm_dp_handle,
         .emit_fn = NULL,
         .consume_badge = air_vehicle_state_in_done_notification_badge()
     };
 
-    connections[5] = (struct camkes_crossvm_connection) {
+    connections[7] = (struct camkes_crossvm_connection) {
         .handle = &uxas_log_out_crossvm_dp_handle,
         .emit_fn = uxas_log_out_ready_emit_underlying,
         .consume_badge = -1
