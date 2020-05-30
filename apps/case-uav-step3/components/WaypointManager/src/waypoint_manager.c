@@ -25,7 +25,7 @@ void mission_command_out_event_data_send(data_t *data);
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "p1_in".
 void air_vehicle_state_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received air vehicle state: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    // printf("%s: received air vehicle state: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
 }
 

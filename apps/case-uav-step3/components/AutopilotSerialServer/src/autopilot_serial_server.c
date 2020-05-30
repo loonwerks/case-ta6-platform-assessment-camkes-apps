@@ -209,7 +209,7 @@ static const char message[] = {
 
 
 #define DUMP_LINE_LENGTH 32
-#define MAX_DUMP_SIZE (2 * DUMP_LINE_LENGTH)
+#define MAX_DUMP_SIZE (4 * DUMP_LINE_LENGTH)
 
 
 int run(void) {
