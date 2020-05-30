@@ -209,11 +209,11 @@ bool sentinel_serial_buffer_append_sentinelized_string(struct sentinel_serial_bu
     __atomic_thread_fence(__ATOMIC_RELEASE);
     *p_write_counter = write_index;
 
-    fprintf(stdout, "SSB sending %zu octets (%zu octets sentinelized):\n", length, sentinelized_length);
-    hexdump_ring("    ", DUMP_LINE_LENGTH, &ctx->data[0], SENTINEL_SERIAL_BUFFER_RING_SIZE,
-		 ((size_t) original_write_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE),
-		 (sentinelized_length < MAX_DUMP_SIZE) ? sentinelized_length : MAX_DUMP_SIZE);
-    fflush(stdout);
+    // fprintf(stdout, "SSB sending %zu octets (%zu octets sentinelized):\n", length, sentinelized_length);
+    // hexdump_ring("    ", DUMP_LINE_LENGTH, &ctx->data[0], SENTINEL_SERIAL_BUFFER_RING_SIZE,
+    //              ((size_t) original_write_counter % SENTINEL_SERIAL_BUFFER_RING_SIZE),
+    //              (sentinelized_length < MAX_DUMP_SIZE) ? sentinelized_length : MAX_DUMP_SIZE);
+    // fflush(stdout);
     
     return true;
 

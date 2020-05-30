@@ -224,14 +224,6 @@ AddFileToOverlayDir(
     overlay_uxas
 )
 
-# Add init.d file for starting UxAS as service.
-AddFileToOverlayDir(
-    "S98uxas"
-    ${CMAKE_CURRENT_SOURCE_DIR}/overlay_files/init_scripts/init.d/S98uxas
-    "etc/init.d"
-    overlay_uxas
-)
-
 # Use initrd with crossvm kernel module and setup already included.
 set(rootfs_file "${CAMKES_VM_IMAGES_DIR}/${KernelARMPlatform}/rootfs_crossvm.cpio.gz")
 # Construct new rootfs

@@ -36,6 +36,8 @@
         <SubscribeToMessage MessageType="afrl.cmasi.KeepOutZone"/>
         <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask" />
     </Bridge>
+
+    <Service Type="Test_SimulationTime"/>
 </UxAS>
 
 

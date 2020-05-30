@@ -235,6 +235,12 @@ AddFileToOverlayDir(
     "etc"
     overlay_radio
 )
+AddFileToOverlayDir(
+    "wait_for_eth0.sh"
+    ${CMAKE_CURRENT_SOURCE_DIR}/overlay_files/init_scripts/wait_for_eth0.sh
+    "etc"
+    overlay_radio
+)
 
 # Overwrite /etc/network/interfaces file.
 AddFileToOverlayDir(
