@@ -133,17 +133,9 @@ void alert_out_event_data_send(data_t *data) {
 }
 
 
-void initializeFlyZones() {
-
-
-}
-
-
 void run_poll(void) {
     counter_t numDropped;
     data_t data;
-
-    initializeFlyZones();
 
     while (true) {
 
