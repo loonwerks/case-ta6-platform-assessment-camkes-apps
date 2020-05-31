@@ -1,0 +1,271 @@
+/*
+ * Copyright 2020 Collins Aerospace
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 3-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD3.txt" for details.
+ */
+#include <configurations/vm.h>
+
+import <std_connector.camkes>;
+import <global-connectors.camkes>;
+import <seL4VMDTBPassthrough.idl4>;
+import <FileServerInterface.camkes>;
+import <FileServer/FileServer.camkes>;
+import <SerialServer/SerialServer.camkes>;
+import <TimeServer/TimeServer.camkes>;
+import <vm-connectors.camkes>;
+import <devices.camkes>;
+
+import "components/AutopilotSerialServer/AutopilotSerialServer.camkes";
+import "components/WaypointManager/WaypointManager.camkes";
+import "components/AttestationGate/AttestationGate.camkes";
+import "components/OperatingRegionFilter/OperatingRegionFilter.camkes";
+import "components/LineSearchTaskFilter/LineSearchTaskFilter.camkes";
+import "components/AutomationRequestFilter/AutomationRequestFilter.camkes";
+import "components/WaypointManager/WaypointManager.camkes";
+import "components/ResponseMonitor/ResponseMonitor.camkes";
+import "components/GeofenceMonitor/GeofenceMonitor.camkes";
+
+component Radio_VM {
+    VM_INIT_DEF()
+    include <queue.h>;
+
+    dataport queue_t operating_region_out_crossvm_dp;
+    emits SendEvent operating_region_out_ready;
+
+    dataport queue_t line_search_task_out_crossvm_dp;
+    emits SendEvent line_search_task_out_ready;
+
+    dataport queue_t automation_request_out_crossvm_dp;
+    emits SendEvent automation_request_out_ready;
+
+    dataport queue_t uxas_log_in_crossvm_dp;
+    maybe consumes SendEvent uxas_log_in_done;
+}
+
+
+component UxAS_VM {
+    VM_INIT_DEF()
+    include <queue.h>;
+
+    dataport queue_t operating_region_in_crossvm_dp;
+    maybe consumes SendEvent operating_region_in_done;
+
+    dataport queue_t line_search_task_in_crossvm_dp;
+    maybe consumes SendEvent line_search_task_in_done;
+
+    dataport queue_t automation_request_in_crossvm_dp;
+    maybe consumes SendEvent automation_request_in_done;
+
+    dataport queue_t air_vehicle_state_in_crossvm_dp;
+    maybe consumes SendEvent air_vehicle_state_in_done;
+
+    dataport queue_t automation_response_out_1_crossvm_dp;
+    emits SendEvent automation_response_out_1_ready;
+
+    dataport queue_t automation_response_out_2_crossvm_dp;
+    emits SendEvent automation_response_out_2_ready;
+
+    dataport queue_t automation_response_out_3_crossvm_dp;
+    emits SendEvent automation_response_out_3_ready;
+
+    dataport queue_t uxas_log_out_crossvm_dp;
+    emits SendEvent uxas_log_out_ready;
+}
+
+
+assembly {
+    composition {
+
+        VM_GENERAL_COMPOSITION_DEF()
+
+        component Radio_VM vmRadio;
+        VM_COMPONENT_CONNECTIONS_DEF(Radio)
+
+        component UxAS_VM vmUxAS;
+        VM_COMPONENT_CONNECTIONS_DEF(UxAS)
+
+        VM_VIRTUAL_SERIAL_COMPOSITION_DEF(Radio, UxAS)
+
+        component AutopilotSerialServer autopilot_serial_server;
+        component WaypointManager waypoint_manager;
+	component AttestationGate attestation_gate;
+	component OperatingRegionFilter operating_region_filter;
+	component LineSearchTaskFilter line_search_task_filter;
+	component AutomationRequestFilter automation_request_filter;
+	component ResponseMonitor response_monitor;
+	component GeofenceMonitor geofence_monitor;
+
+        connection seL4Notification event_conn_01(from vmRadio.operating_region_out_ready, to attestation_gate.operating_region_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_01(from vmRadio.operating_region_out_crossvm_dp, to attestation_gate.operating_region_in_queue);
+
+        connection seL4Notification event_conn_02(from vmRadio.line_search_task_out_ready, to attestation_gate.line_search_task_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_02(from vmRadio.line_search_task_out_crossvm_dp, to attestation_gate.line_search_task_in_queue);
+
+        connection seL4Notification event_conn_03(from vmRadio.automation_request_out_ready, to attestation_gate.automation_request_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_03(from vmRadio.automation_request_out_crossvm_dp, to attestation_gate.automation_request_in_queue);
+
+	connection seL4Notification event_conn_04(from attestation_gate.operating_region_out_SendEvent, to operating_region_filter.operating_region_in_SendEvent);
+	connection seL4SharedDataWithCaps data_conn_04(from attestation_gate.operating_region_out_queue, to operating_region_filter.operating_region_in_queue);
+
+	connection seL4Notification event_conn_05(from attestation_gate.line_search_task_out_SendEvent, to line_search_task_filter.line_search_task_in_SendEvent);
+	connection seL4SharedDataWithCaps data_conn_05(from attestation_gate.line_search_task_out_queue, to line_search_task_filter.line_search_task_in_queue);
+
+	connection seL4Notification event_conn_06(from attestation_gate.automation_request_out_SendEvent, to automation_request_filter.automation_request_in_SendEvent);
+	connection seL4SharedDataWithCaps data_conn_06(from attestation_gate.automation_request_out_queue, to automation_request_filter.automation_request_in_queue);
+
+	connection seL4GlobalAsynch event_conn_07(from operating_region_filter.operating_region_out_SendEvent, to vmUxAS.operating_region_in_done);
+	connection seL4SharedDataWithCaps data_conn_07(from operating_region_filter.operating_region_out_queue, to vmUxAS.operating_region_in_crossvm_dp);
+
+	connection seL4GlobalAsynch event_conn_08(from line_search_task_filter.line_search_task_out_SendEvent, to vmUxAS.line_search_task_in_done);
+	connection seL4SharedDataWithCaps data_conn_08(from line_search_task_filter.line_search_task_out_queue, to vmUxAS.line_search_task_in_crossvm_dp);
+
+	connection seL4GlobalAsynch event_conn_09(from automation_request_filter.automation_request_out_1_SendEvent, to vmUxAS.automation_request_in_done);
+	connection seL4SharedDataWithCaps data_conn_09(from automation_request_filter.automation_request_out_1_queue, to vmUxAS.automation_request_in_crossvm_dp);
+
+        connection seL4Notification event_conn_10(from vmUxAS.automation_response_out_1_ready, to waypoint_manager.automation_response_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_10(from vmUxAS.automation_response_out_1_crossvm_dp, to waypoint_manager.automation_response_in_queue);
+
+        connection seL4Notification event_conn_11(from vmUxAS.automation_response_out_2_ready, to geofence_monitor.automation_response_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_11(from vmUxAS.automation_response_out_2_crossvm_dp, to geofence_monitor.automation_response_in_queue);
+
+        connection seL4Notification event_conn_12(from automation_request_filter.automation_request_out_2_SendEvent, to response_monitor.automation_request_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_12(from automation_request_filter.automation_request_out_2_queue, to response_monitor.automation_request_in_queue);
+
+        connection seL4Notification event_conn_13(from vmUxAS.automation_response_out_3_ready, to response_monitor.automation_response_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_13(from vmUxAS.automation_response_out_3_crossvm_dp, to response_monitor.automation_response_in_queue);
+
+	connection seL4Notification event_conn_14(from geofence_monitor.alert_out_SendEvent, to waypoint_manager.return_home_in_SendEvent);
+	connection seL4SharedDataWithCaps data_conn_14(from geofence_monitor.alert_out_queue, to waypoint_manager.return_home_in_queue);
+
+        connection seL4GlobalAsynch event_conn_15(from autopilot_serial_server.air_vehicle_state_out_1_SendEvent, to vmUxAS.air_vehicle_state_in_done);
+        connection seL4SharedDataWithCaps data_conn_15(from autopilot_serial_server.air_vehicle_state_out_1_queue, to vmUxAS.air_vehicle_state_in_crossvm_dp);
+
+        connection seL4Notification event_conn_16(from waypoint_manager.mission_command_out_SendEvent, to autopilot_serial_server.mission_command_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_16(from waypoint_manager.mission_command_out_queue, to autopilot_serial_server.mission_command_in_queue);
+
+        connection seL4Notification event_conn_17(from autopilot_serial_server.air_vehicle_state_out_2_SendEvent, to waypoint_manager.air_vehicle_state_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_17(from autopilot_serial_server.air_vehicle_state_out_2_queue, to waypoint_manager.air_vehicle_state_in_queue);
+
+        connection seL4GlobalAsynch event_conn_18(from vmUxAS.uxas_log_out_ready, to vmRadio.uxas_log_in_done);
+        connection seL4SharedDataWithCaps data_conn_18(from vmUxAS.uxas_log_out_crossvm_dp, to vmRadio.uxas_log_in_crossvm_dp);
+
+        connection seL4VMDTBPassthrough vmRadio_dtb(from vmRadio.dtb_self, to vmRadio.dtb);
+        connection seL4VMDTBPassthrough vmUxAS_dtb(from vmUxAS.dtb_self, to vmUxAS.dtb);
+
+    }
+    configuration {
+
+        data_conn_01.size = 32768;
+        data_conn_02.size = 32768;
+        data_conn_03.size = 32768;
+        data_conn_04.size = 32768;
+        data_conn_05.size = 32768;
+        data_conn_06.size = 32768;
+        data_conn_07.size = 32768;
+        data_conn_08.size = 32768;
+	data_conn_09.size = 32768;
+	data_conn_10.size = 32768;
+	data_conn_11.size = 32768;
+	data_conn_12.size = 32768;
+	data_conn_13.size = 32768;
+	data_conn_14.size = 32768;
+	data_conn_15.size = 32768;
+	data_conn_16.size = 32768;
+	data_conn_17.size = 32768;
+	data_conn_18.size = 32768;
+
+        autopilot_serial_server.mission_command_in_queue_access = "R";
+        autopilot_serial_server.mission_command_in_SendEvent_domain = 1;
+        autopilot_serial_server.air_vehicle_state_out_queue_access = "W";
+        autopilot_serial_server.serial_getchar_shmem_size = 0x1000;
+        autopilot_serial_server._priority = 50;
+        autopilot_serial_server._domain = 1;
+
+        waypoint_manager.automation_response_in_queue_access = "R";
+        waypoint_manager.automation_response_in_SendEvent_domain = 2;
+        waypoint_manager.air_vehicle_state_in_queue_access = "R";
+        waypoint_manager.air_vehicle_state_in_SendEvent_domain = 2;
+        waypoint_manager.mission_command_out_queue_access = "W";
+        waypoint_manager._priority = 50;
+        waypoint_manager._domain = 2;
+
+        attestation_gate.operating_region_in_queue_access = "R";
+        attestation_gate.operating_region_in_SendEvent_domain = 2;
+	attestation_gate.line_search_task_in_queue_access = "R";
+        attestation_gate.line_search_task_in_SendEvent_domain = 2;
+	attestation_gate.automation_request_in_queue_access = "R";
+        attestation_gate.automation_request_in_SendEvent_domain = 2;
+        attestation_gate.operating_region_out_queue_access = "W";
+        attestation_gate.line_search_task_out_queue_access = "W";
+        attestation_gate.automation_request_out_queue_access = "W";
+        attestation_gate._priority = 50;
+        attestation_gate._domain = 2;
+
+	operating_region_filter.operating_region_in_queue_access = "R";
+        operating_region_filter.operating_region_in_SendEvent_domain = 2;
+        operating_region_filter.operating_region_out_queue_access = "W";
+        operating_region_filter._priority = 50;
+        operating_region_filter._domain = 2;
+
+	line_search_task_filter.line_search_task_in_queue_access = "R";
+        line_search_task_filter.line_search_task_in_SendEvent_domain = 2;
+        line_search_task_filter.line_search_task_out_queue_access = "W";
+        line_search_task_filter._priority = 50;
+        line_search_task_filter._domain = 2;
+
+	automation_request_filter.automation_request_in_queue_access = "R";
+        automation_request_filter.automation_request_in_SendEvent_domain = 2;
+        automation_request_filter.automation_request_out_1_queue_access = "W";
+        automation_request_filter.automation_request_out_2_queue_access = "W";
+        automation_request_filter._priority = 50;
+        automation_request_filter._domain = 2;
+
+	response_monitor.automation_request_in_queue_access = "R";
+        response_monitor.automation_request_in_SendEvent_domain = 2;
+	response_monitor.automation_response_in_queue_access = "R";
+        response_monitor.automation_response_in_SendEvent_domain = 2;
+        response_monitor._priority = 50;
+        response_monitor._domain = 2;
+
+	geofence_monitor.automation_response_in_queue_access = "R";
+        geofence_monitor.automation_response_in_SendEvent_domain = 2;
+	geofence_monitor.alert_out_queue_access = "W";
+        geofence_monitor._priority = 50;
+        geofence_monitor._domain = 2;
+
+        vmRadio.operating_region_out_crossvm_dp = "W";
+        vmRadio.line_search_task_out_crossvm_dp = "W";
+        vmRadio.automation_request_out_crossvm_dp = "W";
+        vmRadio.uxas_log_in_crossvm_dp = "R";
+
+        vmUxAS.operating_region_in_crossvm_dp = "R";
+        vmUxAS.line_search_task_in_crossvm_dp = "R";
+        vmUxAS.automation_request_in_crossvm_dp = "R";
+        vmUxAS.air_vehicle_state_in_crossvm_dp = "R";
+        vmUxAS.automation_response_out_1_crossvm_dp = "W";
+        vmUxAS.automation_response_out_2_crossvm_dp = "W";
+        vmUxAS.automation_response_out_3_crossvm_dp = "W";
+        vmUxAS.uxas_log_out_crossvm_dp = "W";
+
+        VM_GENERAL_CONFIGURATION_DEF()
+        VM_CONFIGURATION_DEF(Radio)
+        VM_CONFIGURATION_DEF(UxAS)
+        VM_VIRTUAL_SERIAL_CONFIGURATION_DEF(Radio)
+
+        vmRadio.cnode_size_bits = 18;
+        vmRadio.simple_untyped21_pool = 12;
+        vmRadio.simple_untyped12_pool = 12;
+        vmRadio.num_extra_frame_caps = 0;
+        vmRadio.extra_frame_map_address = 0;
+
+        vmUxAS.cnode_size_bits = 18;
+        vmUxAS.simple_untyped21_pool = 12;
+        vmUxAS.simple_untyped12_pool = 12;
+        vmUxAS.num_extra_frame_caps = 0;
+        vmUxAS.extra_frame_map_address = 0;
+
+    }
+}
+
