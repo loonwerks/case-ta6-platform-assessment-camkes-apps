@@ -69,17 +69,34 @@ static void done_emit(void) {
 void run_poll(void) {
     counter_t numDropped;
     data_t data;
+    counter_t invocations = 0;
 
     while (true) {
+
+        if (invocations > 0) {
+            invocations++;
+        }
 
         bool dataReceived = automation_request_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
             automation_request_in_event_data_receive(numDropped, &data);
+            invocations = 1;
         }
 
         dataReceived = automation_response_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
             automation_response_in_event_data_receive(numDropped, &data);
+            invocations = 0;
+        }
+
+        if (invocations > 10) {
+            printf("\n************************************\n");
+            printf("** Response Monitor:              **\n");
+            printf("** Expected a response from UxAS, **\n");
+            printf("** but did not receive one!       **\n");
+            printf("** Consider aborting mission.     **\n");
+            printf("************************************\n\n");
+            fflush(stdout);
         }
 
         seL4_Yield();
