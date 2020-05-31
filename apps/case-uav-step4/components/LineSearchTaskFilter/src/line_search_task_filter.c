@@ -16,8 +16,66 @@
 
 #include "hexdump.h"
 
+#include "./CMASI/LineSearchTask.h"
+#include "./CMASI/Location3D.h"
+#include "./CMASI/Wedge.h"
+#include "./CMASI/lmcp.h"
+
+#define LAT_MIN -90.0
+#define LAT_MAX 90.0
+#define LONG_MIN -180.0
+#define LONG_MAX 180.0
+#define ALT_MIN 0.0
+#define ALT_MAX 5000.0
+#define TASK_ID_MIN 0
+#define TASK_ID_MAX 2000
+#define AZIMUTH_CENTERLINE_MIN -180.0
+#define AZIMUTH_CENTERLINE_MAX 180.0
+#define VERTICAL_CENTERLINE_MIN -180.0
+#define VERTICAL_CENTERLINE_MAX 180.0
+
 // Forward declarations
 void line_search_task_out_event_data_send(data_t *data);
+
+bool isValidLineSearchTaskMessage(data_t *data) {
+    LineSearchTask *lineSearchTask = NULL;
+    lmcp_init_LineSearchTask(&lineSearchTask);
+
+    if (lineSearchTask != NULL) {
+        uint8_t *payload = &(data->payload[0]);
+        int msg_result = lmcp_process_msg(&payload, sizeof(data->payload), (lmcp_object**)&lineSearchTask);
+
+        if (msg_result == 0) {
+            printf("LineSearchTaskFilter message received\n");
+            fflush(stdout);
+            hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+
+            for (size_t i = 0; i < lineSearchTask->pointlist_ai.length; i++) {
+                Location3D * point = lineSearchTask->pointlist[i];
+                if (point->latitude < LAT_MIN || point->latitude > LAT_MAX ||
+                    point->longitude < LONG_MIN || point->longitude > LONG_MAX ||
+                    point->altitude < ALT_MIN || point->altitude > ALT_MAX) {
+                        return false;
+                }
+            }
+            
+            if (lineSearchTask->super.super.taskid < TASK_ID_MIN ||
+                lineSearchTask->super.super.taskid > TASK_ID_MAX) {
+                    return false;
+            }
+
+            for (size_t i = 0; i < lineSearchTask->viewanglelist_ai.length; i++) {
+                Wedge * wedge = lineSearchTask->viewanglelist[i];
+                if (wedge->azimuthcenterline < AZIMUTH_CENTERLINE_MIN || wedge->azimuthcenterline > AZIMUTH_CENTERLINE_MAX ||
+                    wedge->verticalcenterline < VERTICAL_CENTERLINE_MIN || wedge->verticalcenterline > VERTICAL_CENTERLINE_MAX) {
+                        return false;
+                }
+            }
+
+        }
+    }
+    return true;
+}
 
 
 //------------------------------------------------------------------------------
@@ -26,7 +84,13 @@ void line_search_task_out_event_data_send(data_t *data);
 void line_search_task_in_event_data_receive(counter_t numDropped, data_t *data) {
     printf("%s: received line search task: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
-    line_search_task_out_event_data_send(data);
+
+    if (isValidLineSearchTaskMessage(data)) {
+        printf("Line search task is valid\n");
+        line_search_task_out_event_data_send(data);
+    } else {
+        printf("Line search task is not valid\n");
+    }
 }
 
 
