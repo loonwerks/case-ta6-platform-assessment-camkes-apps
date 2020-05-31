@@ -26,12 +26,12 @@
 void alert_out_event_data_send(data_t *data);
 
 // TODO: Put real values in here
-uint64_t keepInLat[2] = {4,16};
-uint64_t keepInLong[2] = {4,16};
-uint64_t keepInAlt = 0;
-uint64_t keepOutLat[2] = {8,12};
-uint64_t keepOutLong[2] = {8,12};
-uint64_t keepOutAlt = 0;
+uint64_t keepInLat[2] = {4631573696238749064UL, 4631577187513622694UL};
+uint64_t keepInLong[2] = {13861588572943193838UL, 13861580451545690805UL};
+uint64_t keepInAlt = 1148846080U;
+uint64_t keepOutLat[2] = {4631576878172623289UL, 4631577257741629384UL};
+uint64_t keepOutLong[2] = {13861582715167453512UL, 13861582444670000894UL};
+uint64_t keepOutAlt = 1148846080U;
 
 bool inKeepInZone(Waypoint * waypoint) {
 
@@ -39,7 +39,7 @@ bool inKeepInZone(Waypoint * waypoint) {
             waypoint->super.latitude <= keepInLat[1] &&
             waypoint->super.longitude >= keepInLong[0] &&
             waypoint->super.longitude <= keepInLong[1] &&
-            waypoint->super.altitude >= keepInAlt);
+            waypoint->super.altitude <= keepInAlt);
 
 }
 
@@ -49,7 +49,7 @@ bool inKeepOutZone(Waypoint * waypoint) {
             waypoint->super.latitude <= keepOutLat[1] &&
             waypoint->super.longitude >= keepOutLong[0] &&
             waypoint->super.longitude <= keepOutLong[1] &&
-            waypoint->super.altitude >= keepOutAlt);
+            waypoint->super.altitude <= keepOutAlt);
 
 }
 
