@@ -75,7 +75,24 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
         // check that each waypoint is in the keep-in zones and not in the keep-out zones
         for (size_t i = 0; i < automationResponse->missioncommandlist[0]->waypointlist_ai.length; i++) {
             Waypoint * waypoint = automationResponse->missioncommandlist[0]->waypointlist[i];
-            if (!inKeepInZone(waypoint) || inKeepOutZone(waypoint)) {
+            if (!inKeepInZone(waypoint)) {
+                printf("\n********************************************\n");
+                printf("** Geofence Monitor:                      **\n");
+                printf("** UxAS generated a flight plan that is   **\n");
+                printf("** not contained in the specified keep-in **\n");
+                printf("** zone. This is likely due to an attack. **\n");
+                printf("** Aborting mission and returning home.   **\n");
+                printf("********************************************\n\n");
+                alert_out_event_data_send(data);
+                return;
+            } else if (inKeepOutZone(waypoint)) {
+                printf("\n**********************************************\n");
+                printf("** Geofence Monitor:                        **\n");
+                printf("** UxAS generated a flight plan that passes **\n");
+                printf("** through a specified keep-out zone. This  **\n");
+                printf("** is likely due to an attack.              **\n");
+                printf("** Aborting mission and returning home.     **\n");
+                printf("**********************************************\n\n");
                 alert_out_event_data_send(data);
                 return;
             }
@@ -90,6 +107,13 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
                     point_m.latitude == point_n.latitude && 
                     point_m.longitude == point_n.longitude &&
                     point_m.altitude == point_n.altitude) {
+                        printf("\n******************************************\n");
+                        printf("** Geofence Monitor:                    **\n");
+                        printf("** UxAS generated a flight plan with    **\n");
+                        printf("** duplicate waypoints! This is likely  **\n");
+                        printf("** due to an attack.                    **\n");
+                        printf("** Aborting mission and returning home. **\n");
+                        printf("******************************************\n\n");
                         alert_out_event_data_send(data);
                         return;
                 }
