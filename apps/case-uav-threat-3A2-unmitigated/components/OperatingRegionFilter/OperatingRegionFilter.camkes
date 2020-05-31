@@ -1,0 +1,28 @@
+/*
+ * Copyright 2017, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
+ *
+ * Copyright 2020 Collins Aerospace
+ * Modifications made to original
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 3-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD3.txt" for details.
+ */
+
+component OperatingRegionFilter {
+    include <queue.h>;
+    control;
+
+    // operating_region_in - AADL Event Data Port (in) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    consumes SendEvent operating_region_in_SendEvent;
+    dataport queue_t operating_region_in_queue;
+
+    // operating_region_out - AADL Event Data Port (out) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    emits SendEvent operating_region_out_SendEvent;
+    dataport queue_t operating_region_out_queue;
+}
+
