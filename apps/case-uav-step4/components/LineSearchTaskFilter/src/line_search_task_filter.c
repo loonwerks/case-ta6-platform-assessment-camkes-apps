@@ -52,8 +52,8 @@ bool isValidLineSearchTaskMessage(data_t *data) {
 
         if (msg_result == 0) {
 //            printf("LineSearchTaskFilter message received\n");
-            fflush(stdout);
-            hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+//            fflush(stdout);
+//            hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
             for (size_t i = 0; i < lineSearchTask->pointlist_ai.length; i++) {
                 Location3D * point = lineSearchTask->pointlist[i];

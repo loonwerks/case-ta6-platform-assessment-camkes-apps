@@ -69,7 +69,7 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
 
     if (msg_result == 0 && automationResponse->missioncommandlist_ai.length > 0) {
 
-        hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+//        hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
         // check that each waypoint is in the keep-in zones and not in the keep-out zones
         for (size_t i = 0; i < automationResponse->missioncommandlist[0]->waypointlist_ai.length; i++) {
