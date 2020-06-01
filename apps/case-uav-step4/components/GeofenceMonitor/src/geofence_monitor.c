@@ -25,13 +25,12 @@
 // Forward declarations
 void alert_out_event_data_send(data_t *data);
 
-// TODO: Put real values in here
 uint64_t keepInLat[2] = {4631573696238749064UL, 4631577187513622694UL};
 uint64_t keepInLong[2] = {13861588572943193838UL, 13861580451545690805UL};
-uint64_t keepInAlt = 1148846080U;
+uint32_t keepInAlt = 1148846080U;
 uint64_t keepOutLat[2] = {4631576878172623289UL, 4631577257741629384UL};
 uint64_t keepOutLong[2] = {13861582715167453512UL, 13861582444670000894UL};
-uint64_t keepOutAlt = 1148846080U;
+uint32_t keepOutAlt = 1148846080U;
 
 bool inKeepInZone(Waypoint * waypoint) {
 
@@ -83,7 +82,7 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
                 printf("** zone. This is likely due to an attack. **\n");
                 printf("** Aborting mission and returning home.   **\n");
                 printf("********************************************\n\n");
-                printf("lat = %lu, long = %lu, alt = %u\n", waypoint->super.latitude, waypoint->super.longitude, waypoint->super.altitude);
+                printf("id = %lu, lat = %f, long = %f, alt = %f\n", waypoint->number, unpack754(waypoint->super.latitude, 64, 11), unpack754(waypoint->super.longitude, 64, 11), unpack754(waypoint->super.altitude, 32, 8));
                 fflush(stdout);
                 alert_out_event_data_send(data);
                 return;
@@ -95,7 +94,7 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
                 printf("** is likely due to an attack.              **\n");
                 printf("** Aborting mission and returning home.     **\n");
                 printf("**********************************************\n\n");
-                printf("lat = %lu, long = %lu, alt = %u\n", waypoint->super.latitude, waypoint->super.longitude, waypoint->super.altitude);
+                printf("id = %lu, lat = %f, long = %f, alt = %f\n", waypoint->number, unpack754(waypoint->super.latitude, 64, 11), unpack754(waypoint->super.longitude, 64, 11), unpack754(waypoint->super.altitude, 32 ,8));
                 fflush(stdout);
                 alert_out_event_data_send(data);
                 return;

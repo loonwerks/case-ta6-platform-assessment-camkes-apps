@@ -51,7 +51,7 @@ bool isValidLineSearchTaskMessage(data_t *data) {
         int msg_result = lmcp_process_msg(&payload, sizeof(data->payload), (lmcp_object**)&lineSearchTask);
 
         if (msg_result == 0) {
-            printf("LineSearchTaskFilter message received\n");
+//            printf("LineSearchTaskFilter message received\n");
             fflush(stdout);
             hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 

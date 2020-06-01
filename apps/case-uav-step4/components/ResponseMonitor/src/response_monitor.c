@@ -91,14 +91,16 @@ void run_poll(void) {
             invocations = 0;
         }
 
-        if (invocations > 10) {
+        if (invocations > 1000) {
             printf("\n************************************\n");
             printf("** Response Monitor:              **\n");
             printf("** Expected a response from UxAS, **\n");
             printf("** but did not receive one!       **\n");
             printf("** Consider aborting mission.     **\n");
             printf("************************************\n\n");
+            printf("invocations = %lu\n", invocations);
             fflush(stdout);
+            invocations = 0;
         }
 
 #endif
