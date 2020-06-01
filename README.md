@@ -74,6 +74,14 @@ applications.
 
 The resulting seL4 image can be found in the build/images directory.
 
+### Serial I/O Cooking
+
+By default the seL4 platform support library inserts a carriage return after each linefeed.  The code that does this is
+located in the portion of the code that fills the FIFO.  For the Exynos5422 processor, this is located in
+projects/util_libs/libplatsupport/src/mach/exynos/serial.c at lines 152..161.  Since the applications in this repository
+transport binary data from the ODROID-XU4 to a host computer via serial port.  These lines should be commented out.
+Otherwise, checksum errors will result at the receiving side of the serial bus.
+
 ## Included Applications
 
 ### case-gs-step1
