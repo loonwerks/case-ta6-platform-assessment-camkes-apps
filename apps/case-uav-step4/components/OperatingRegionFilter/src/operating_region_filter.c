@@ -24,7 +24,7 @@ void operating_region_out_event_data_send(data_t *data);
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "p1_in".
 void operating_region_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received operating region: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received operating region: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
     operating_region_out_event_data_send(data);
 }

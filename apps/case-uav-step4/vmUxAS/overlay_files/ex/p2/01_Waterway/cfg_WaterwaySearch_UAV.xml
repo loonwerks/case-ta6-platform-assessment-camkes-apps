@@ -30,7 +30,9 @@
       /dev/uio1 : receiver from radio line search task port
       /dev/uio2 : receiver from radio automation request port
       /dev/uio3 : transmitter to waypoint manager automation response port
-      /dev/uio4 : receiver from autopilot serial server air vehicle state port
+      /dev/uio4 : transmitter to response monitor automation response port
+      /dev/uio5 : transmitter to geofence monitor automation response port
+      /dev/uio6 : receiver from autopilot serial server air vehicle state port
     -->
     <Bridge Type="LmcpObjectNetworkCamkesMultiReceiverBridge">
         <CAmkESDevice DeviceName="/dev/uio6" />

@@ -58,7 +58,7 @@ bool inKeepOutZone(Waypoint * waypoint) {
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "automation_response_in".
 void automation_response_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
 
     AutomationResponse * automationResponse = NULL;
@@ -83,6 +83,8 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
                 printf("** zone. This is likely due to an attack. **\n");
                 printf("** Aborting mission and returning home.   **\n");
                 printf("********************************************\n\n");
+                printf("lat = %lu, long = %lu, alt = %u\n", waypoint->super.latitude, waypoint->super.longitude, waypoint->super.altitude);
+                fflush(stdout);
                 alert_out_event_data_send(data);
                 return;
             } else if (inKeepOutZone(waypoint)) {
@@ -93,6 +95,8 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
                 printf("** is likely due to an attack.              **\n");
                 printf("** Aborting mission and returning home.     **\n");
                 printf("**********************************************\n\n");
+                printf("lat = %lu, long = %lu, alt = %u\n", waypoint->super.latitude, waypoint->super.longitude, waypoint->super.altitude);
+                fflush(stdout);
                 alert_out_event_data_send(data);
                 return;
             }
@@ -114,6 +118,7 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
                         printf("** due to an attack.                    **\n");
                         printf("** Aborting mission and returning home. **\n");
                         printf("******************************************\n\n");
+                        fflush(stdout);
                         alert_out_event_data_send(data);
                         return;
                 }
@@ -163,10 +168,14 @@ void run_poll(void) {
 
     while (true) {
 
+#ifndef PASS_THRU
+
         bool dataReceived = automation_response_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
             automation_response_in_event_data_receive(numDropped, &data);
         }
+
+#endif
 
         seL4_Yield();
     }

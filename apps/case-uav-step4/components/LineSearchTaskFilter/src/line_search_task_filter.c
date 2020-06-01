@@ -21,12 +21,12 @@
 #include "./CMASI/Wedge.h"
 #include "./CMASI/lmcp.h"
 
-#define LAT_MIN -90.0
-#define LAT_MAX 90.0
-#define LONG_MIN -180.0
-#define LONG_MAX 180.0
-#define ALT_MIN 0.0
-#define ALT_MAX 5000.0
+#define LATITUDE_MIN -90.0
+#define LATITUDE_MAX 90.0
+#define LONGITUDE_MIN -180.0
+#define LONGITUDE_MAX 180.0
+#define ALTITUDE_MIN 0.0
+#define ALTITUDE_MAX 5000.0
 #define TASK_ID_MIN 0
 #define TASK_ID_MAX 2000
 #define AZIMUTH_CENTERLINE_MIN -180.0
@@ -38,6 +38,11 @@
 void line_search_task_out_event_data_send(data_t *data);
 
 bool isValidLineSearchTaskMessage(data_t *data) {
+
+#ifdef PASS_THRU
+    return true;
+#endif
+
     LineSearchTask *lineSearchTask = NULL;
     lmcp_init_LineSearchTask(&lineSearchTask);
 
@@ -52,9 +57,9 @@ bool isValidLineSearchTaskMessage(data_t *data) {
 
             for (size_t i = 0; i < lineSearchTask->pointlist_ai.length; i++) {
                 Location3D * point = lineSearchTask->pointlist[i];
-                if (point->latitude < LAT_MIN || point->latitude > LAT_MAX ||
-                    point->longitude < LONG_MIN || point->longitude > LONG_MAX ||
-                    point->altitude < ALT_MIN || point->altitude > ALT_MAX) {
+                if (point->latitude < LATITUDE_MIN || point->latitude > LATITUDE_MAX ||
+                    point->longitude < LONGITUDE_MIN || point->longitude > LONGITUDE_MAX ||
+                    point->altitude < ALTITUDE_MIN || point->altitude > ALTITUDE_MAX) {
                         return false;
                 }
             }
@@ -82,14 +87,14 @@ bool isValidLineSearchTaskMessage(data_t *data) {
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "p1_in".
 void line_search_task_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received line search task: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received line search task: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
 
     if (isValidLineSearchTaskMessage(data)) {
-        printf("Line search task is valid\n");
+        printf("Line search task is valid\n"); fflush(stdout);
         line_search_task_out_event_data_send(data);
     } else {
-        printf("Line search task is not valid\n");
+        printf("Line search task is not valid\n"); fflush(stdout);
     }
 }
 

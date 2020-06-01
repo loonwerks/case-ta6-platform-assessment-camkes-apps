@@ -21,7 +21,7 @@
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "automation_response_in".
 void automation_request_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received automation request: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received automation request: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
     
 }
@@ -40,7 +40,7 @@ bool automation_request_in_event_data_poll(counter_t *numDropped, data_t *data) 
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "automation_response_in".
 void automation_response_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
 
 }
@@ -73,6 +73,8 @@ void run_poll(void) {
 
     while (true) {
 
+#ifndef PASS_THRU
+
         if (invocations > 0) {
             invocations++;
         }
@@ -98,6 +100,8 @@ void run_poll(void) {
             printf("************************************\n\n");
             fflush(stdout);
         }
+
+#endif
 
         seL4_Yield();
     }
