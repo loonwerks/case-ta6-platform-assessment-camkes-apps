@@ -25,30 +25,30 @@
 // Forward declarations
 void alert_out_event_data_send(data_t *data);
 
-uint64_t keepInLat[2] = {4631573696238749064UL, 4631577187513622694UL};
-uint64_t keepInLong[2] = {13861588572943193838UL, 13861580451545690805UL};
-uint32_t keepInAlt = 1148846080U;
-uint64_t keepOutLat[2] = {4631576878172623289UL, 4631577257741629384UL};
-uint64_t keepOutLong[2] = {13861582715167453512UL, 13861582444670000894UL};
-uint32_t keepOutAlt = 1148846080U;
+double keepInLat[2] = {45.30039972874535, 45.34531548097283};
+double keepInLong[2] = {-121.01472992576784, -120.91251955738149};
+double keepInAlt = 1000.0;
+double keepOutLat[2] = {45.33305951104345, 45.3357544568948};
+double keepOutLong[2] = {-120.93809578907548, -120.93426211970625};
+double keepOutAlt = 1000.0;
 
 bool inKeepInZone(Waypoint * waypoint) {
 
-    return (waypoint->super.latitude >= keepInLat[0] &&
-            waypoint->super.latitude <= keepInLat[1] &&
-            waypoint->super.longitude >= keepInLong[0] &&
-            waypoint->super.longitude <= keepInLong[1] &&
-            waypoint->super.altitude <= keepInAlt);
+    return unpack754(waypoint->super.latitude, 64, 11) >= keepInLat[0] &&
+           unpack754(waypoint->super.latitude, 64, 11) <= keepInLat[1] &&
+           unpack754(waypoint->super.longitude, 64, 11) >= keepInLong[0] &&
+           unpack754(waypoint->super.longitude, 64, 11) <= keepInLong[1] &&
+           unpack754(waypoint->super.altitude, 32, 8) <= keepInAlt;
 
 }
 
 bool inKeepOutZone(Waypoint * waypoint) {
 
-    return (waypoint->super.latitude >= keepOutLat[0] &&
-            waypoint->super.latitude <= keepOutLat[1] &&
-            waypoint->super.longitude >= keepOutLong[0] &&
-            waypoint->super.longitude <= keepOutLong[1] &&
-            waypoint->super.altitude <= keepOutAlt);
+    return unpack754(waypoint->super.latitude, 64, 11) >= keepOutLat[0] &&
+            unpack754(waypoint->super.latitude, 64, 11) <= keepOutLat[1] &&
+            unpack754(waypoint->super.longitude, 64, 11) >= keepOutLong[0] &&
+            unpack754(waypoint->super.longitude, 64, 11) <= keepOutLong[1] &&
+            unpack754(waypoint->super.altitude, 32, 8) <= keepOutAlt;
 
 }
 
@@ -82,7 +82,6 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
                 printf("** zone. This is likely due to an attack. **\n");
                 printf("** Aborting mission and returning home.   **\n");
                 printf("********************************************\n\n");
-                printf("id = %lu, lat = %f, long = %f, alt = %f\n", waypoint->number, unpack754(waypoint->super.latitude, 64, 11), unpack754(waypoint->super.longitude, 64, 11), unpack754(waypoint->super.altitude, 32, 8));
                 fflush(stdout);
                 alert_out_event_data_send(data);
                 return;
@@ -94,7 +93,6 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
                 printf("** is likely due to an attack.              **\n");
                 printf("** Aborting mission and returning home.     **\n");
                 printf("**********************************************\n\n");
-                printf("id = %lu, lat = %f, long = %f, alt = %f\n", waypoint->number, unpack754(waypoint->super.latitude, 64, 11), unpack754(waypoint->super.longitude, 64, 11), unpack754(waypoint->super.altitude, 32 ,8));
                 fflush(stdout);
                 alert_out_event_data_send(data);
                 return;
@@ -103,13 +101,13 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
 
         // check if there are any duplicate waypoints
         for (size_t m = 0; m < automationResponse->missioncommandlist[0]->waypointlist_ai.length; m++) {
-            Location3D point_m = automationResponse->missioncommandlist[0]->waypointlist[m]->super;
+            Waypoint * waypoint_m = automationResponse->missioncommandlist[0]->waypointlist[m];
             for (size_t n = 0; n < automationResponse->missioncommandlist[0]->waypointlist_ai.length; n++) {
-                Location3D point_n = automationResponse->missioncommandlist[0]->waypointlist[n]->super;
-                if (m != n &&
-                    point_m.latitude == point_n.latitude && 
-                    point_m.longitude == point_n.longitude &&
-                    point_m.altitude == point_n.altitude) {
+                Waypoint * waypoint_n = automationResponse->missioncommandlist[0]->waypointlist[n];
+                if (m != n && waypoint_m->number == waypoint_n->number) {
+//                    waypoint_m->super.latitude == point_n->super.latitude && 
+//                    waypoint_m->super.longitude == point_n->super.longitude &&
+//                    waypoint_m->super.altitude == point_n->super.altitude) {
                         printf("\n******************************************\n");
                         printf("** Geofence Monitor:                    **\n");
                         printf("** UxAS generated a flight plan with    **\n");

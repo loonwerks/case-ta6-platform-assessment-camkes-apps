@@ -69,7 +69,8 @@ static void done_emit(void) {
 void run_poll(void) {
     counter_t numDropped;
     data_t data;
-    counter_t invocations = 0;
+    uint32_t invocations = 0;
+    uint32_t total_invocations = 0;
 
     while (true) {
 
@@ -88,18 +89,20 @@ void run_poll(void) {
         dataReceived = automation_response_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
             automation_response_in_event_data_receive(numDropped, &data);
+            total_invocations += invocations;
+            printf("total invocations = %u\n", total_invocations);
             invocations = 0;
         }
 
-        if (invocations > 1000) {
+        if (invocations > 120000) {
             printf("\n************************************\n");
             printf("** Response Monitor:              **\n");
             printf("** Expected a response from UxAS, **\n");
             printf("** but did not receive one!       **\n");
             printf("** Consider aborting mission.     **\n");
             printf("************************************\n\n");
-            printf("invocations = %lu\n", invocations);
             fflush(stdout);
+            total_invocations += invocations;
             invocations = 0;
         }
 
