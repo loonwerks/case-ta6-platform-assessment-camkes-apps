@@ -30,7 +30,9 @@
       /dev/uio1 : receiver from radio line search task port
       /dev/uio2 : receiver from radio automation request port
       /dev/uio3 : transmitter to waypoint manager automation response port
-      /dev/uio4 : receiver from autopilot serial server air vehicle state port
+      /dev/uio4 : transmitter to response monitor automation response port
+      /dev/uio5 : transmitter to geofence monitor automation response port
+      /dev/uio6 : receiver from autopilot serial server air vehicle state port
     -->
     <Bridge Type="LmcpObjectNetworkCamkesMultiReceiverBridge">
         <CAmkESDevice DeviceName="/dev/uio6" />
@@ -49,18 +51,18 @@
     </Bridge>
 
     <!-- Connect to AMASE (see config folder in OpenAMASE) -->
-    <!--
+<!--
     <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://192.168.2.2:5555" Server="FALSE">
         <SubscribeToMessage MessageType="afrl.cmasi.KeepInZone"/>
         <SubscribeToMessage MessageType="afrl.cmasi.KeepOutZone"/>
         <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask" />
     </Bridge>
-    -->
+-->
 
     <Service Type="StatusReportService" VehicleID="400" />
     <Service Type="Test_SimulationTime"/>
     <Service Type="TaskManagerService"/>
-    <Service Type="AutomationRequestValidatorService"/>
+    <Service Type="AutomationRequestValidatorService" MaxResponseTime_ms="60000"/>
     <Service Type="RoutePlannerVisibilityService" TurnRadiusOffset_m="0.0" MinimumWaypointSeparation_m="50.0"/>
     <Service Type="RouteAggregatorService" />
     <Service Type="AssignmentTreeBranchBoundService" NumberNodesMaximum="0" CostFunction="MINMAX" />   

@@ -24,7 +24,7 @@ void automation_request_out_event_data_send(data_t *data);
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "p1_in".
 void automation_request_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received automation request: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received automation request: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
     automation_request_out_event_data_send(data);
 }

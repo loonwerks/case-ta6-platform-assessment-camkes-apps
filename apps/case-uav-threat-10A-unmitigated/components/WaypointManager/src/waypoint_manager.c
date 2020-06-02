@@ -193,7 +193,7 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
 
       printf("AirVehicleState waypoint = %llu, currentWaypoint = %llu\n", airVehicleState->super.currentwaypoint, currentWaypoint);
       fflush(stdout);
-      hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+//      hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
       if (airVehicleState->super.currentwaypoint == 0) {
         lmcp_free_AirVehicleState(airVehicleState, 1);
@@ -261,7 +261,7 @@ void automation_response_in_event_data_receive_handler(counter_t numDropped, dat
 
     if (msg_result == 0 && automationResponse->missioncommandlist_ai.length > 0) {
 
-        hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+//        hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
         currentWaypoint = automationResponse->missioncommandlist[0]->firstwaypoint;
         sendMissionCommand();
@@ -346,18 +346,18 @@ void sendMissionCommand() {
     missionCommand->waypointlist = malloc(sizeof(Waypoint*) * WINDOW_SIZE);
 
     if (returnHome) {
-	currentWaypoint = HOME_WAYPOINT_NUM;
-        // Set mission window waypoints to home
-        for (int i = 0; i < WINDOW_SIZE; i++) {
-            missionCommand->waypointlist[i] = homeWaypoint;
-        }
+      currentWaypoint = HOME_WAYPOINT_NUM;
+      // Set mission window waypoints to home
+      for (int i = 0; i < WINDOW_SIZE; i++) {
+          missionCommand->waypointlist[i] = homeWaypoint;
+      }
     } else {
-        // Construct mission window
-        FillWindow( automationResponse->missioncommandlist[0]->waypointlist,
-                    automationResponse->missioncommandlist[0]->waypointlist_ai.length,
-                    currentWaypoint,
-                    missionCommand->waypointlist,
-                    WINDOW_SIZE);
+      // Construct mission window
+      FillWindow( automationResponse->missioncommandlist[0]->waypointlist,
+                  automationResponse->missioncommandlist[0]->waypointlist_ai.length,
+                  currentWaypoint,
+                  missionCommand->waypointlist,
+                  WINDOW_SIZE);
     }
 
     missionCommand->firstwaypoint = currentWaypoint;
@@ -371,7 +371,7 @@ void sendMissionCommand() {
     if (data != NULL) {
       lmcp_pack_AddressAttributedMessage(data->payload, addressAttributedMessage);
 
-      hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+//      hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
       // Send it
       mission_command_out_event_data_send(data);

@@ -27,7 +27,7 @@ void automation_request_out_event_data_send(data_t *data);
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "p1_in".
 void operating_region_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received operating region: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received operating region: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
     operating_region_out_event_data_send(data);
 }
@@ -44,7 +44,7 @@ bool operating_region_in_event_data_poll(counter_t *numDropped, data_t *data) {
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "automation_response_in".
 void line_search_task_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received line search task: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received line search task: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
     line_search_task_out_event_data_send(data);
 }
@@ -62,7 +62,7 @@ bool line_search_task_in_event_data_poll(counter_t *numDropped, data_t *data) {
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "automation_response_in".
 void automation_request_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received automation request: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    printf("%s: received automation request: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
     automation_request_out_event_data_send(data);
 }
@@ -101,8 +101,10 @@ void line_search_task_out_event_data_send(data_t *data) {
 }
 
 void automation_request_out_event_data_send(data_t *data) {
-    queue_enqueue(automation_request_out_queue, data);
-    automation_request_out_SendEvent_emit();
+    queue_enqueue(automation_request_out_1_queue, data);
+    queue_enqueue(automation_request_out_2_queue, data);
+    automation_request_out_1_SendEvent_emit();
+    automation_request_out_2_SendEvent_emit();
     done_emit();
 }
 
@@ -123,7 +125,7 @@ void run_poll(void) {
             line_search_task_in_event_data_receive(numDropped, &data);
         }
 
-	dataReceived = automation_request_in_event_data_poll(&numDropped, &data);
+	    dataReceived = automation_request_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
             automation_request_in_event_data_receive(numDropped, &data);
         }
@@ -140,7 +142,8 @@ void post_init(void) {
     recv_queue_init(&automationRequestInRecvQueue, automation_request_in_queue);
     queue_init(operating_region_out_queue);
     queue_init(line_search_task_out_queue);
-    queue_init(automation_request_out_queue);
+    queue_init(automation_request_out_1_queue);
+    queue_init(automation_request_out_2_queue);
 }
 
 int run(void) {

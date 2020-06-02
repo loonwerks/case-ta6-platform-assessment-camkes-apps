@@ -31,11 +31,13 @@
     </Bridge>
 
     <!-- Connect to AMASE (see config folder in OpenAMASE) -->
+<!--
     <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://192.168.2.2:5555" Server="FALSE">
         <SubscribeToMessage MessageType="afrl.cmasi.KeepInZone"/>
         <SubscribeToMessage MessageType="afrl.cmasi.KeepOutZone"/>
         <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask" />
     </Bridge>
+-->
 
     <Service Type="Test_SimulationTime"/>
 </UxAS>

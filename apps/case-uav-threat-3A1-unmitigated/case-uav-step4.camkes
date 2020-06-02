@@ -20,9 +20,9 @@ import <devices.camkes>;
 import "components/AutopilotSerialServer/AutopilotSerialServer.camkes";
 import "components/WaypointManager/WaypointManager.camkes";
 import "components/AttestationGate/AttestationGate.camkes";
-import "components/OperatingRegionFilter/OperatingRegionFilter.camkes";
+//import "components/OperatingRegionFilter/OperatingRegionFilter.camkes";
 import "components/LineSearchTaskFilter/LineSearchTaskFilter.camkes";
-import "components/AutomationRequestFilter/AutomationRequestFilter.camkes";
+//import "components/AutomationRequestFilter/AutomationRequestFilter.camkes";
 import "components/WaypointManager/WaypointManager.camkes";
 import "components/ResponseMonitor/ResponseMonitor.camkes";
 import "components/GeofenceMonitor/GeofenceMonitor.camkes";
@@ -91,9 +91,9 @@ assembly {
         component AutopilotSerialServer autopilot_serial_server;
         component WaypointManager waypoint_manager;
 	component AttestationGate attestation_gate;
-	component OperatingRegionFilter operating_region_filter;
+//	component OperatingRegionFilter operating_region_filter;
 	component LineSearchTaskFilter line_search_task_filter;
-	component AutomationRequestFilter automation_request_filter;
+//	component AutomationRequestFilter automation_request_filter;
 	component ResponseMonitor response_monitor;
 	component GeofenceMonitor geofence_monitor;
 
@@ -106,23 +106,29 @@ assembly {
         connection seL4Notification event_conn_03(from vmRadio.automation_request_out_ready, to attestation_gate.automation_request_in_SendEvent);
         connection seL4SharedDataWithCaps data_conn_03(from vmRadio.automation_request_out_crossvm_dp, to attestation_gate.automation_request_in_queue);
 
-	connection seL4Notification event_conn_04(from attestation_gate.operating_region_out_SendEvent, to operating_region_filter.operating_region_in_SendEvent);
-	connection seL4SharedDataWithCaps data_conn_04(from attestation_gate.operating_region_out_queue, to operating_region_filter.operating_region_in_queue);
+//	connection seL4Notification event_conn_04(from attestation_gate.operating_region_out_SendEvent, to operating_region_filter.operating_region_in_SendEvent);
+//	connection seL4SharedDataWithCaps data_conn_04(from attestation_gate.operating_region_out_queue, to operating_region_filter.operating_region_in_queue);
+
+	connection seL4GlobalAsynch event_conn_04(from attestation_gate.operating_region_out_SendEvent, to vmUxAS.operating_region_in_done);
+	connection seL4SharedDataWithCaps data_conn_04(from attestation_gate.operating_region_out_queue, to vmUxAS.operating_region_in_crossvm_dp);
 
 	connection seL4Notification event_conn_05(from attestation_gate.line_search_task_out_SendEvent, to line_search_task_filter.line_search_task_in_SendEvent);
 	connection seL4SharedDataWithCaps data_conn_05(from attestation_gate.line_search_task_out_queue, to line_search_task_filter.line_search_task_in_queue);
 
-	connection seL4Notification event_conn_06(from attestation_gate.automation_request_out_SendEvent, to automation_request_filter.automation_request_in_SendEvent);
-	connection seL4SharedDataWithCaps data_conn_06(from attestation_gate.automation_request_out_queue, to automation_request_filter.automation_request_in_queue);
+//	connection seL4Notification event_conn_06(from attestation_gate.automation_request_out_SendEvent, to automation_request_filter.automation_request_in_SendEvent);
+//	connection seL4SharedDataWithCaps data_conn_06(from attestation_gate.automation_request_out_queue, to automation_request_filter.automation_request_in_queue);
 
-	connection seL4GlobalAsynch event_conn_07(from operating_region_filter.operating_region_out_SendEvent, to vmUxAS.operating_region_in_done);
-	connection seL4SharedDataWithCaps data_conn_07(from operating_region_filter.operating_region_out_queue, to vmUxAS.operating_region_in_crossvm_dp);
+        connection seL4GlobalAsynch event_conn_06(from attestation_gate.automation_request_out_1_SendEvent, to vmUxAS.automation_request_in_done);
+	connection seL4SharedDataWithCaps data_conn_06(from attestation_gate.automation_request_out_1_queue, to vmUxAS.automation_request_in_crossvm_dp);
+
+//	connection seL4GlobalAsynch event_conn_07(from operating_region_filter.operating_region_out_SendEvent, to vmUxAS.operating_region_in_done);
+//	connection seL4SharedDataWithCaps data_conn_07(from operating_region_filter.operating_region_out_queue, to vmUxAS.operating_region_in_crossvm_dp);
 
 	connection seL4GlobalAsynch event_conn_08(from line_search_task_filter.line_search_task_out_SendEvent, to vmUxAS.line_search_task_in_done);
 	connection seL4SharedDataWithCaps data_conn_08(from line_search_task_filter.line_search_task_out_queue, to vmUxAS.line_search_task_in_crossvm_dp);
 
-	connection seL4GlobalAsynch event_conn_09(from automation_request_filter.automation_request_out_1_SendEvent, to vmUxAS.automation_request_in_done);
-	connection seL4SharedDataWithCaps data_conn_09(from automation_request_filter.automation_request_out_1_queue, to vmUxAS.automation_request_in_crossvm_dp);
+//	connection seL4GlobalAsynch event_conn_09(from automation_request_filter.automation_request_out_1_SendEvent, to vmUxAS.automation_request_in_done);
+//	connection seL4SharedDataWithCaps data_conn_09(from automation_request_filter.automation_request_out_1_queue, to vmUxAS.automation_request_in_crossvm_dp);
 
         connection seL4Notification event_conn_10(from vmUxAS.automation_response_out_1_ready, to waypoint_manager.automation_response_in_SendEvent);
         connection seL4SharedDataWithCaps data_conn_10(from vmUxAS.automation_response_out_1_crossvm_dp, to waypoint_manager.automation_response_in_queue);
@@ -130,8 +136,11 @@ assembly {
         connection seL4Notification event_conn_11(from vmUxAS.automation_response_out_2_ready, to geofence_monitor.automation_response_in_SendEvent);
         connection seL4SharedDataWithCaps data_conn_11(from vmUxAS.automation_response_out_2_crossvm_dp, to geofence_monitor.automation_response_in_queue);
 
-        connection seL4Notification event_conn_12(from automation_request_filter.automation_request_out_2_SendEvent, to response_monitor.automation_request_in_SendEvent);
-        connection seL4SharedDataWithCaps data_conn_12(from automation_request_filter.automation_request_out_2_queue, to response_monitor.automation_request_in_queue);
+//      connection seL4Notification event_conn_12(from automation_request_filter.automation_request_out_2_SendEvent, to response_monitor.automation_request_in_SendEvent);
+//      connection seL4SharedDataWithCaps data_conn_12(from automation_request_filter.automation_request_out_2_queue, to response_monitor.automation_request_in_queue);
+
+        connection seL4Notification event_conn_12(from attestation_gate.automation_request_out_2_SendEvent, to response_monitor.automation_request_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_12(from attestation_gate.automation_request_out_2_queue, to response_monitor.automation_request_in_queue);
 
         connection seL4Notification event_conn_13(from vmUxAS.automation_response_out_3_ready, to response_monitor.automation_response_in_SendEvent);
         connection seL4SharedDataWithCaps data_conn_13(from vmUxAS.automation_response_out_3_crossvm_dp, to response_monitor.automation_response_in_queue);
@@ -163,9 +172,9 @@ assembly {
         data_conn_04.size = 32768;
         data_conn_05.size = 32768;
         data_conn_06.size = 32768;
-        data_conn_07.size = 32768;
+//      data_conn_07.size = 32768;
         data_conn_08.size = 32768;
-	data_conn_09.size = 32768;
+//	data_conn_09.size = 32768;
 	data_conn_10.size = 32768;
 	data_conn_11.size = 32768;
 	data_conn_12.size = 32768;
@@ -203,11 +212,11 @@ assembly {
         attestation_gate._priority = 50;
         attestation_gate._domain = 2;
 
-	operating_region_filter.operating_region_in_queue_access = "R";
-        operating_region_filter.operating_region_in_SendEvent_domain = 2;
-        operating_region_filter.operating_region_out_queue_access = "W";
-        operating_region_filter._priority = 50;
-        operating_region_filter._domain = 2;
+//	operating_region_filter.operating_region_in_queue_access = "R";
+//      operating_region_filter.operating_region_in_SendEvent_domain = 2;
+//      operating_region_filter.operating_region_out_queue_access = "W";
+//      operating_region_filter._priority = 50;
+//      operating_region_filter._domain = 2;
 
 	line_search_task_filter.line_search_task_in_queue_access = "R";
         line_search_task_filter.line_search_task_in_SendEvent_domain = 2;
@@ -215,12 +224,12 @@ assembly {
         line_search_task_filter._priority = 50;
         line_search_task_filter._domain = 2;
 
-	automation_request_filter.automation_request_in_queue_access = "R";
-        automation_request_filter.automation_request_in_SendEvent_domain = 2;
-        automation_request_filter.automation_request_out_1_queue_access = "W";
-        automation_request_filter.automation_request_out_2_queue_access = "W";
-        automation_request_filter._priority = 50;
-        automation_request_filter._domain = 2;
+//	automation_request_filter.automation_request_in_queue_access = "R";
+//      automation_request_filter.automation_request_in_SendEvent_domain = 2;
+//      automation_request_filter.automation_request_out_1_queue_access = "W";
+//      automation_request_filter.automation_request_out_2_queue_access = "W";
+//      automation_request_filter._priority = 50;
+//      automation_request_filter._domain = 2;
 
 	response_monitor.automation_request_in_queue_access = "R";
         response_monitor.automation_request_in_SendEvent_domain = 2;

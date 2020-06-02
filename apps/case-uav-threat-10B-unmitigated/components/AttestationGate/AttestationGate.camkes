@@ -46,10 +46,15 @@ component AttestationGate {
     emits SendEvent line_search_task_out_SendEvent;
     dataport queue_t line_search_task_out_queue;
 
-    // automation_request_out - AADL Event Data Port (in) representation
+    // automation_request_out - to UxAS - AADL Event Data Port (in) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
-    emits SendEvent automation_request_out_SendEvent;
-    dataport queue_t automation_request_out_queue;
+    emits SendEvent automation_request_out_1_SendEvent;
+    dataport queue_t automation_request_out_1_queue;
+
+    // automation_request_out - to Response Monitor - AADL Event Data Port (in) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    emits SendEvent automation_request_out_2_SendEvent;
+    dataport queue_t automation_request_out_2_queue;
 
 
 }
