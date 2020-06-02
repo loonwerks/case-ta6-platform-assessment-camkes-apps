@@ -121,13 +121,41 @@ installed.
 
 The step 4 unmanned air vehicle application extends the case-uav-step3 application by including the following high-assurance 
 components: Attestation Gate, Operating Region Filter, Line Search Task Filter, Automation Request Filter, Response Monitor, 
-and Geofence Monitor.  The cuurrent behavior of the high-assurance components is to pass messages straight through with no 
+and Geofence Monitor.  The current behavior of the high-assurance components is to pass messages straight through with no 
 processing.
 
 ### case-uav-step5
 
 The step 5 unmanned air vehicle application extends the case-uav-step3 application by including the Attestation Manager in the 
 Radio VM.
+
+### case-uav-threat-3A1-unmitigated
+
+The unmanned air vehicle threat 3A1 unmitigated application extends the case-uav-step4 application by intruducing the threat
+trojan code to render a sensitivity to a buffer overrun attack in the form of an overly-long line search task waypoint list.
+This application is intended to demonstrate that such an attack succeeds if high-assurance mitigations are not in place.  A
+corresponding line search task message definition XML file containing an overly-long waypoint list is then used to demonstrate
+the vulnerability.
+
+### case-uav-threat-3A2-unmitigated
+
+The unmanned air vehicle threat 3A2 unmitigated application extends the case-uav-step4 application by intruducing the threat
+trojan code to render a sensitivity to invalid input data in the form of waypoints with out-of-range longitude values.
+This application is intended to demonstrate that such an attack succeeds if high-assurance mitigations are not in place.  A
+corresponding line search task message definition XML file containing an waypoints with out-of-rage longitude values is then
+used to demonstrate the vulnerability.
+
+### case-uav-threat-10A-unmitigated
+
+The unmanned air vehicle threat 10A unmitigated application extends the case-uav-step4 application by intruducing the threat
+trojan code to inject undesired behavior in the form of commanding the UAV to fly through a Keep-Out-Zone airspace. This
+application is intended to demonstrate that such an attack succeeds if high-assurance mitigations are not in place.
+
+### case-uav-threat-10A-unmitigated
+
+The unmanned air vehicle threat 10B unmitigated application extends the case-uav-step4 application by intruducing the threat
+trojan code to inject undesired behavior in the form of commanding the UAV to fly into a (hypothetical) tethered balloon. This
+application is intended to demonstrate that such an attack succeeds if high-assurance mitigations are not in place.
 
 ## Installing on ODROID-XU4
 
