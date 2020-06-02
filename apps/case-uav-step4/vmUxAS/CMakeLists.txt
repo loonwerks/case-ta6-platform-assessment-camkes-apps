@@ -165,6 +165,10 @@ ExternalProject_Add(
     https://github.com/loonwerks/case-ta6-experimental-platform-OpenUxAS.git
     GIT_TAG
     develop-case-ta6-ph2-example01
+#    develop-case-ta6-ph2-example01-threat-3A1-unmitigated
+#    develop-case-ta6-ph2-example01-threat-3A2-unmitigated
+#    develop-case-ta6-ph2-example01-threat-10A-unmitigated
+#    develop-case-ta6-ph2-example01-threat-10B-unmitigated
     GIT_SHALLOW
     true
     INSTALL_COMMAND
