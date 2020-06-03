@@ -16,10 +16,10 @@
 
 #include "hexdump.h"
 
-#include "./CMASI/LineSearchTask.h"
-#include "./CMASI/Location3D.h"
-#include "./CMASI/Wedge.h"
-#include "./CMASI/lmcp.h"
+#include "LineSearchTask.h"
+#include "Location3D.h"
+#include "Wedge.h"
+#include "lmcp.h"
 
 #define LATITUDE_MIN -90.0
 #define LATITUDE_MAX 90.0

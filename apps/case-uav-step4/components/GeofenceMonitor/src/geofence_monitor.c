@@ -16,11 +16,11 @@
 
 #include "hexdump.h"
 
-#include "./CMASI/lmcp.h"
-#include "./CMASI/common/conv.h"
-#include "./CMASI/MissionCommand.h"
-#include "./CMASI/Waypoint.h"
-#include "./CMASI/AutomationResponse.h"
+#include "lmcp.h"
+#include "common/conv.h"
+#include "MissionCommand.h"
+#include "Waypoint.h"
+#include "AutomationResponse.h"
 
 // Forward declarations
 void alert_out_event_data_send(data_t *data);
