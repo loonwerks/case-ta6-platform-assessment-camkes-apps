@@ -15,15 +15,17 @@
 #include <sys/types.h>
 
 #include "hexdump.h"
+#include "AutomationResponse.h"
+#include "lmcp.h"
 
 
 //------------------------------------------------------------------------------
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "automation_response_in".
 void automation_request_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received automation request: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
+    printf("%s: received automation request\n", get_instance_name()); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
-    
+
 }
 
 
@@ -39,9 +41,22 @@ bool automation_request_in_event_data_poll(counter_t *numDropped, data_t *data) 
 //------------------------------------------------------------------------------
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "automation_response_in".
-void automation_response_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
+bool automation_response_in_event_data_receive(counter_t numDropped, data_t *data) {
+    printf("%s: received automation response\n", get_instance_name()); fflush(stdout);
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
+
+    AutomationResponse * automationResponse;
+    lmcp_init_AutomationResponse(&automationResponse);
+    
+    uint8_t *payload = &(data->payload[0]);
+
+    int msg_result = lmcp_process_msg(&payload, sizeof(data->payload), (lmcp_object**)&automationResponse);
+
+    bool result = (msg_result == 0 && automationResponse->missioncommandlist_ai.length > 0);
+
+    lmcp_free_AutomationResponse(automationResponse, 1);
+
+    return result;
 
 }
 
@@ -70,7 +85,6 @@ void run_poll(void) {
     counter_t numDropped;
     data_t data;
     uint32_t invocations = 0;
-    uint32_t total_invocations = 0;
 
     while (true) {
 
@@ -86,10 +100,9 @@ void run_poll(void) {
 
         dataReceived = automation_response_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
-            automation_response_in_event_data_receive(numDropped, &data);
-            total_invocations += invocations;
-            printf("total invocations = %u\n", total_invocations);
-            invocations = 0;
+            if (automation_response_in_event_data_receive(numDropped, &data)) {
+                invocations = 0;
+            }
         }
 
         if (invocations > 2000) {
@@ -100,7 +113,6 @@ void run_poll(void) {
             printf("** Consider aborting mission.     **\n");
             printf("************************************\n\n");
             fflush(stdout);
-            total_invocations += invocations;
             invocations = 0;
         }
 
