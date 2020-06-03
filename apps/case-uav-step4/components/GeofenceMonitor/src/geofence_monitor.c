@@ -102,17 +102,23 @@ void automation_response_in_event_data_receive(counter_t numDropped, data_t *dat
         // check if there are any duplicate waypoints
         for (size_t m = 0; m < automationResponse->missioncommandlist[0]->waypointlist_ai.length; m++) {
             Waypoint * waypoint_m = automationResponse->missioncommandlist[0]->waypointlist[m];
+            if (waypoint_m->nextwaypoint == waypoint_m->number) {
+                continue;
+            }
             for (size_t n = 0; n < automationResponse->missioncommandlist[0]->waypointlist_ai.length; n++) {
                 Waypoint * waypoint_n = automationResponse->missioncommandlist[0]->waypointlist[n];
-                if (m != n && waypoint_m->number == waypoint_n->number) {
-//                    waypoint_m->super.latitude == point_n->super.latitude && 
-//                    waypoint_m->super.longitude == point_n->super.longitude &&
-//                    waypoint_m->super.altitude == point_n->super.altitude) {
+                if (waypoint_n->nextwaypoint == waypoint_n->number) {
+                    continue;
+                }
+                if (waypoint_m->nextwaypoint == waypoint_n->number &&
+                    waypoint_m->super.latitude == waypoint_n->super.latitude && 
+                    waypoint_m->super.longitude == waypoint_n->super.longitude &&
+                    waypoint_m->super.altitude == waypoint_n->super.altitude) {
                         printf("\n******************************************\n");
                         printf("** Geofence Monitor:                    **\n");
-                        printf("** UxAS generated a flight plan with    **\n");
-                        printf("** duplicate waypoints! This is likely  **\n");
-                        printf("** due to an attack.                    **\n");
+                        printf("** UxAS generated a flight plan with a  **\n");
+                        printf("** suspicious sequence of waypoints!    **\n");
+                        printf("** This is likely due to an attack.     **\n");
                         printf("** Aborting mission and returning home. **\n");
                         printf("******************************************\n\n");
                         fflush(stdout);
