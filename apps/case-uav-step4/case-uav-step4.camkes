@@ -186,31 +186,31 @@ assembly {
 	data_conn_18.size = 32768;
 
         autopilot_serial_server.mission_command_in_queue_access = "R";
-        autopilot_serial_server.mission_command_in_SendEvent_domain = 1;
+        autopilot_serial_server.mission_command_in_SendEvent_domain = 14;
         autopilot_serial_server.air_vehicle_state_out_queue_access = "W";
         autopilot_serial_server.serial_getchar_shmem_size = 0x1000;
         autopilot_serial_server._priority = 50;
-        autopilot_serial_server._domain = 1;
+        autopilot_serial_server._domain = 0;
 
         waypoint_manager.automation_response_in_queue_access = "R";
-        waypoint_manager.automation_response_in_SendEvent_domain = 2;
+        waypoint_manager.automation_response_in_SendEvent_domain = 10;
         waypoint_manager.air_vehicle_state_in_queue_access = "R";
-        waypoint_manager.air_vehicle_state_in_SendEvent_domain = 2;
+        waypoint_manager.air_vehicle_state_in_SendEvent_domain = 12;
         waypoint_manager.mission_command_out_queue_access = "W";
         waypoint_manager._priority = 50;
-        waypoint_manager._domain = 2;
+        waypoint_manager._domain = 13;
 
         attestation_gate.operating_region_in_queue_access = "R";
-        attestation_gate.operating_region_in_SendEvent_domain = 2;
+        attestation_gate.operating_region_in_SendEvent_domain = 3;
 	attestation_gate.line_search_task_in_queue_access = "R";
-        attestation_gate.line_search_task_in_SendEvent_domain = 2;
+        attestation_gate.line_search_task_in_SendEvent_domain = 3;
 	attestation_gate.automation_request_in_queue_access = "R";
-        attestation_gate.automation_request_in_SendEvent_domain = 2;
+        attestation_gate.automation_request_in_SendEvent_domain = 4;
         attestation_gate.operating_region_out_queue_access = "W";
         attestation_gate.line_search_task_out_queue_access = "W";
         attestation_gate.automation_request_out_queue_access = "W";
         attestation_gate._priority = 50;
-        attestation_gate._domain = 2;
+        attestation_gate._domain = 5;
 
 //	operating_region_filter.operating_region_in_queue_access = "R";
 //      operating_region_filter.operating_region_in_SendEvent_domain = 2;
@@ -219,10 +219,10 @@ assembly {
 //      operating_region_filter._domain = 2;
 
 	line_search_task_filter.line_search_task_in_queue_access = "R";
-        line_search_task_filter.line_search_task_in_SendEvent_domain = 2;
+        line_search_task_filter.line_search_task_in_SendEvent_domain = 6;
         line_search_task_filter.line_search_task_out_queue_access = "W";
         line_search_task_filter._priority = 50;
-        line_search_task_filter._domain = 2;
+        line_search_task_filter._domain = 7;
 
 //	automation_request_filter.automation_request_in_queue_access = "R";
 //      automation_request_filter.automation_request_in_SendEvent_domain = 2;
@@ -232,17 +232,17 @@ assembly {
 //      automation_request_filter._domain = 2;
 
 	response_monitor.automation_request_in_queue_access = "R";
-        response_monitor.automation_request_in_SendEvent_domain = 2;
+        response_monitor.automation_request_in_SendEvent_domain = 8;
 	response_monitor.automation_response_in_queue_access = "R";
-        response_monitor.automation_response_in_SendEvent_domain = 2;
+        response_monitor.automation_response_in_SendEvent_domain = 10;
         response_monitor._priority = 50;
-        response_monitor._domain = 2;
+        response_monitor._domain = 14;
 
 	geofence_monitor.automation_response_in_queue_access = "R";
-        geofence_monitor.automation_response_in_SendEvent_domain = 2;
+        geofence_monitor.automation_response_in_SendEvent_domain = 10;
 	geofence_monitor.alert_out_queue_access = "W";
         geofence_monitor._priority = 50;
-        geofence_monitor._domain = 2;
+        geofence_monitor._domain = 11;
 
         vmRadio.operating_region_out_crossvm_dp = "W";
         vmRadio.line_search_task_out_crossvm_dp = "W";
@@ -250,9 +250,13 @@ assembly {
         vmRadio.uxas_log_in_crossvm_dp = "R";
 
         vmUxAS.operating_region_in_crossvm_dp = "R";
+        vmUxAS.operating_region_in_done_domain = 6;
         vmUxAS.line_search_task_in_crossvm_dp = "R";
+        vmUxAS.line_search_task_in_done_domain = 8;
         vmUxAS.automation_request_in_crossvm_dp = "R";
+        vmUxAS.automation_request_in_done_domain = 6;
         vmUxAS.air_vehicle_state_in_crossvm_dp = "R";
+        vmUxAS.air_vehicle_state_in_done_domain = 8;
         vmUxAS.automation_response_out_1_crossvm_dp = "W";
         vmUxAS.automation_response_out_2_crossvm_dp = "W";
         vmUxAS.automation_response_out_3_crossvm_dp = "W";
@@ -263,12 +267,14 @@ assembly {
         VM_CONFIGURATION_DEF(UxAS)
         VM_VIRTUAL_SERIAL_CONFIGURATION_DEF(Radio)
 
+        vmRadio._domain = 2;
         vmRadio.cnode_size_bits = 18;
         vmRadio.simple_untyped21_pool = 12;
         vmRadio.simple_untyped12_pool = 12;
         vmRadio.num_extra_frame_caps = 0;
         vmRadio.extra_frame_map_address = 0;
 
+        vmUxAS._domain = 9;
         vmUxAS.cnode_size_bits = 18;
         vmUxAS.simple_untyped21_pool = 12;
         vmUxAS.simple_untyped12_pool = 12;
