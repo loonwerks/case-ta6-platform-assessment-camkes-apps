@@ -465,8 +465,8 @@ fun dvalFn s =
        val b7 = char2byte(String.sub s 6)
        val b8 = char2byte(String.sub s 7)
    in
-     (* Word64.concatAll b8 b7 b6 b5 b4 b3 b2 b1 *)
-     Word64.fromInt 0
+     Word64.concatAll b8 b7 b6 b5 b4 b3 b2 b1
+     (* Word64.fromInt 0 *)
    end
  else raise ERR "dvalFn" "expected 8 bytes";
 
