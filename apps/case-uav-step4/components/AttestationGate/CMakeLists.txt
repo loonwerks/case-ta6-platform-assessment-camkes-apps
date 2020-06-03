@@ -18,6 +18,8 @@ project(ComponentAttestationGate C)
 DeclareCAmkESComponent(AttestationGate
     SOURCES
     src/attestation_gate.c
+    src/attestation_gate_ffi.c
+    src/attestation_gate.S
     LIBS
     hexdump
     queue

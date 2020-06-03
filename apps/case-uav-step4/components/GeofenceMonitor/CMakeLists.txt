@@ -18,6 +18,7 @@ project(ComponentGeofenceMonitor C)
 DeclareCAmkESComponent(GeofenceMonitor
     SOURCES
     src/geofence_monitor.c
+    src/geofence_monitor_ffi.c
     LIBS
     CMASI
     hexdump

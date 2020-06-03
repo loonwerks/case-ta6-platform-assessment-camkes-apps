@@ -146,8 +146,10 @@ void post_init(void) {
     queue_init(automation_request_out_2_queue);
 }
 
-int run(void) {
+/* Implemented by CakeML */
 
-    run_poll();
-}
+// int run(void) {
+
+//     run_poll();
+// }
 
