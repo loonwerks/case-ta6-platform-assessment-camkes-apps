@@ -47,27 +47,21 @@ bool isValidLineSearchTaskMessage(data_t *data) {
         int msg_result = lmcp_process_msg(&payload, sizeof(data->payload), (lmcp_object**)&lineSearchTask);
 
         if (msg_result == 0) {
-//            printf("LineSearchTaskFilter message received\n");
+            printf("LineSearchTaskFilter: message received containing %u waypoints\n", lineSearchTask->pointlist_ai.length);
 //            fflush(stdout);
-//            hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
+//            hexdump("    ", 24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
             for (size_t i = 0; i < lineSearchTask->pointlist_ai.length; i++) {
                 Location3D * point = lineSearchTask->pointlist[i];
                 double latitude = unpack754(point->latitude, 64, 11);
                 double longitude = unpack754(point->longitude, 64, 11);
                 float altitude = unpack754(point->altitude, 32, 8);
-                printf("%u: longitude=%f\n", i, longitude);
                 if (latitude < LATITUDE_MIN || latitude > LATITUDE_MAX ||
                     longitude < LONGITUDE_MIN || longitude > LONGITUDE_MAX ||
                     altitude < ALTITUDE_MIN || altitude > ALTITUDE_MAX) {
                         return false;
                 }
                 
-//                if (unpack754(point->latitude, 64, 11) < LATITUDE_MIN || unpack754(point->latitude, 64, 11) > LATITUDE_MAX ||
-//                    unpack754(point->longitude, 64, 11) < LONGITUDE_MIN || unpack754(point->longitude, 64, 11) > LONGITUDE_MAX ||
-//                    unpack754(point->altitude, 32, 8) < ALTITUDE_MIN || unpack754(point->altitude, 32, 8) > ALTITUDE_MAX) {
-//                        return false;
-//                }
             }
             
             if (lineSearchTask->super.super.taskid < TASK_ID_MIN ||
@@ -83,8 +77,12 @@ bool isValidLineSearchTaskMessage(data_t *data) {
                 }
             }
 
+        } else {
+            printf("Unable to process LineSearchTask message\n"); fflush(stdout);
+            return false;
         }
     } else {
+        printf("Unable to initialize lineSearchTask\n"); fflush(stdout);
         return false;
     }
     return true;
@@ -99,10 +97,10 @@ void line_search_task_in_event_data_receive(counter_t numDropped, data_t *data) 
     // hexdump("    ", 32, data->payload, sizeof(data->payload));
 
     if (isValidLineSearchTaskMessage(data)) {
-        printf("Line search task is valid\n"); fflush(stdout);
+        printf("Line search task is valid!\n"); fflush(stdout);
         line_search_task_out_event_data_send(data);
     } else {
-        printf("Line search task is not valid\n"); fflush(stdout);
+        printf("Line search task is not valid!\n"); fflush(stdout);
     }
 }
 
