@@ -92,7 +92,7 @@ void run_poll(void) {
             invocations = 0;
         }
 
-        if (invocations > 120000) {
+        if (invocations > 2000) {
             printf("\n************************************\n");
             printf("** Response Monitor:              **\n");
             printf("** Expected a response from UxAS, **\n");

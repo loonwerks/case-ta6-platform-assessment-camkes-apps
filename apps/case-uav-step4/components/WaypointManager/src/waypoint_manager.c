@@ -136,7 +136,7 @@ bool FillWindow(  Waypoint ** ws,
 // "p1_in".
 void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_t *data) {
 
-  printf("\n%s: received air vehicle state: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
+  printf("\n%s: received air vehicle state\n", get_instance_name(), numDropped); fflush(stdout);
   
   if (automationResponse == NULL) {
     return;
@@ -181,7 +181,7 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
       }
 
     } else {
-      printf("%s: air vehicle state rx handler: failed processing message into structure\n", get_instance_name()); fflush(stdout);
+      printf("%s: air vehicle state rx handler: invalide air vehicle state\n", get_instance_name()); fflush(stdout);
     }
 
     lmcp_free_AirVehicleState(airVehicleState, 1);
@@ -207,7 +207,7 @@ bool air_vehicle_state_in_event_data_poll(counter_t *numDropped, data_t *data) {
 // "automation_response_in".
 void automation_response_in_event_data_receive_handler(counter_t numDropped, data_t *data) {
 
-    printf("\n%s: received automation response: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
+    printf("\n%s: received automation response\n", get_instance_name()); fflush(stdout);
     
     if (automationResponse != NULL) {
         lmcp_free_AutomationResponse(automationResponse, 1);
@@ -227,7 +227,7 @@ void automation_response_in_event_data_receive_handler(counter_t numDropped, dat
         sendMissionCommand();
 
     } else {
-      printf("%s: automation response rx handler: failed processing message into structure\n", get_instance_name()); fflush(stdout);
+      printf("%s: automation response rx handler: invalid automation response\n", get_instance_name()); fflush(stdout);
       lmcp_free_AutomationResponse(automationResponse, 1);
       automationResponse = NULL;
     }
@@ -246,7 +246,7 @@ bool automation_response_in_event_data_poll(counter_t *numDropped, data_t *data)
 
 void return_home_in_event_data_receive_handler(counter_t numDropped, data_t *data) {
 
-    printf("\n%s: received return home: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
+    printf("\n%s: received return home\n", get_instance_name(), numDropped); fflush(stdout);
 
 }
 
@@ -294,7 +294,7 @@ void sendMissionCommand() {
         return;
     }
 
-    printf("%s: sendMissionCommand()\n", get_instance_name()); fflush(stdout);
+//    printf("%s: sendMissionCommand()\n", get_instance_name()); fflush(stdout);
 
     // Construct mission command message
     MissionCommand * missionCommand = NULL;

@@ -171,14 +171,10 @@ void run_poll(void) {
 
     while (true) {
 
-#ifndef PASS_THRU
-
         bool dataReceived = automation_response_in_event_data_poll(&numDropped, &data);
         if (dataReceived) {
             automation_response_in_event_data_receive(numDropped, &data);
         }
-
-#endif
 
         seL4_Yield();
     }
