@@ -53,6 +53,6 @@ int lmcp_unpack_char(uint8_t** buf, size_t * size_remain, char* out) ;
 
 size_t lmcp_pack_char(uint8_t* buf, char in) ;
 
-
+long double unpack754(long long i, unsigned bits, unsigned expbits);
 
 int lmcp_unpack_structheader(uint8_t** inb, size_t* size_remain, char* seriesname, uint32_t* objtype, uint16_t* objseries);

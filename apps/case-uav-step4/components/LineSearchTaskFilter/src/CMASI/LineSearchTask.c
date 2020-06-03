@@ -1,4 +1,5 @@
-
+#include <stdlib.h>
+#include <string.h>
 #include "common/struct_defines.h"
 #include "common/conv.h"
 #include "LineSearchTask.h"
