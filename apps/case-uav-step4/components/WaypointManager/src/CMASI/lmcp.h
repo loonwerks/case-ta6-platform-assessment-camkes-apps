@@ -11,6 +11,7 @@
 #include "VehicleActionCommand.h"
 #include "AutomationResponse.h"
 
+size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length);
 void lmcp_pp(lmcp_object* o);
 uint32_t lmcp_msgsize(lmcp_object* o);
 uint32_t lmcp_packsize(lmcp_object* o);

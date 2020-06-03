@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "common/struct_defines.h"
 #include "lmcp.h"
 #include "AddressAttributedMessage.h"
@@ -9,6 +11,9 @@
 #include "PayloadConfiguration.h"
 #include "PayloadState.h"
 #include "VehicleAction.h"
+#include "Task.h"
+#include "SearchTask.h"
+#include "LineSearchTask.h"
 #include "EntityConfiguration.h"
 #include "EntityState.h"
 #include "AirVehicleState.h"
@@ -16,6 +21,46 @@
 #include "MissionCommand.h"
 #include "VehicleActionCommand.h"
 #include "AutomationResponse.h"
+#include "Wedge.h"
+
+size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)
+{
+  static const uint8_t addr_attr_delim = '$';
+  static const uint8_t field_delim = '|';
+
+  void *end_of_address_delim = memchr(buffer, addr_attr_delim, buffer_length);
+  if (end_of_address_delim == NULL) {
+    errno = -1;
+    return 0;
+  }
+  ssize_t end_of_address_delim_offset = end_of_address_delim - buffer;
+  
+  void *end_of_attr_delim = memchr(end_of_address_delim + 1, addr_attr_delim, buffer_length - end_of_address_delim_offset - 1);
+  if (end_of_attr_delim == NULL) {
+    errno = -2;
+    return 0;
+  }
+  ssize_t end_of_attr_delim_offset = end_of_attr_delim - buffer;
+  
+  const size_t lmcp_control_string_size = 4;
+  const size_t checksum_size = 4;
+
+  uint8_t *lmcp_message_size_pos = end_of_attr_delim + sizeof(addr_attr_delim) + lmcp_control_string_size;
+  size_t lmcp_message_size = ((size_t) lmcp_message_size_pos[0] << 24)
+    + ((size_t) lmcp_message_size_pos[1] << 16)
+    + ((size_t) lmcp_message_size_pos[2] <<  8)
+    + ((size_t) lmcp_message_size_pos[3] <<  0);
+    
+  if (buffer + buffer_length < ((void *) lmcp_message_size_pos) + lmcp_message_size + checksum_size) {
+    fprintf(stdout, "apss: compute_addr_attr_lmcp_message_size: EoAddr %zu, EoAttr %zu, LMCP sz %zu\n",
+	    end_of_address_delim_offset, end_of_attr_delim_offset, lmcp_message_size); fflush(stdout);
+    errno = -4;
+    return 0;
+  }
+
+  errno = 0;
+  return ((size_t) ((void *) lmcp_message_size_pos - buffer)) + lmcp_control_string_size + lmcp_message_size + checksum_size;
+}
 
 void lmcp_pp(lmcp_object *o) {
     if (o == NULL) {
@@ -47,6 +92,14 @@ void lmcp_pp(lmcp_object *o) {
         lmcp_pp_VehicleAction((VehicleAction*)o);
 
         break;
+    case TASK:
+        lmcp_pp_Task((Task*)o);
+
+        break;
+    case SEARCHTASK:
+        lmcp_pp_SearchTask((SearchTask*)o);
+
+        break;
     case ENTITYCONFIGURATION:
         lmcp_pp_EntityConfiguration((EntityConfiguration*)o);
 
@@ -57,6 +110,14 @@ void lmcp_pp(lmcp_object *o) {
         break;
     case AIRVEHICLESTATE:
         lmcp_pp_AirVehicleState((AirVehicleState*)o);
+
+        break;
+    case WEDGE:
+        lmcp_pp_Wedge((Wedge*)o);
+
+        break;
+    case LINESEARCHTASK:
+        lmcp_pp_LineSearchTask((LineSearchTask*)o);
 
         break;
     case WAYPOINT:
@@ -108,6 +169,14 @@ uint32_t lmcp_packsize(lmcp_object* o) {
         return 15 + lmcp_packsize_VehicleAction((VehicleAction*)o);
 
         break;
+    case 8:
+        return 15 + lmcp_packsize_Task((Task*)o);
+
+        break;
+    case 9:
+        return 15 + lmcp_packsize_SearchTask((SearchTask*)o);
+
+        break;
     case 11:
         return 15 + lmcp_packsize_EntityConfiguration((EntityConfiguration*)o);
 
@@ -118,6 +187,14 @@ uint32_t lmcp_packsize(lmcp_object* o) {
         break;
     case 15:
         return 15 + lmcp_packsize_AirVehicleState((AirVehicleState*)o);
+
+        break;
+    case 16:
+        return 15 + lmcp_packsize_Wedge((Wedge*)o);
+
+        break;
+    case 31:
+        return 15 + lmcp_packsize_LineSearchTask((LineSearchTask*)o);
 
         break;
     case 35:
@@ -169,6 +246,14 @@ void lmcp_free(lmcp_object *o) {
         lmcp_free_VehicleAction((VehicleAction*)o, 1);
 
         break;
+    case 8:
+        lmcp_free_Task((Task*)o, 1);
+
+        break;
+    case 9:
+        lmcp_free_SearchTask((SearchTask*)o, 1);
+
+        break;
     case 11:
         lmcp_free_EntityConfiguration((EntityConfiguration*)o, 1);
 
@@ -179,6 +264,14 @@ void lmcp_free(lmcp_object *o) {
         break;
     case 15:
         lmcp_free_AirVehicleState((AirVehicleState*)o, 1);
+
+        break;
+    case 16:
+        lmcp_free_Wedge((Wedge*)o, 1);
+
+        break;
+    case 31:
+        lmcp_free_LineSearchTask((LineSearchTask*)o, 1);
 
         break;
     case 35:
@@ -342,6 +435,16 @@ int lmcp_unpack(uint8_t** inb, size_t size, lmcp_object **o) {
         CHECK(lmcp_unpack_VehicleAction(inb, size_remain, (VehicleAction*)(*o)))
 
         break;
+    case 8:
+        lmcp_init_Task((Task**)o);
+        CHECK(lmcp_unpack_Task(inb, size_remain, (Task*)(*o)))
+
+        break;
+    case 9:
+        lmcp_init_SearchTask((SearchTask**)o);
+        CHECK(lmcp_unpack_SearchTask(inb, size_remain, (SearchTask*)(*o)))
+
+        break;
     case 11:
         lmcp_init_EntityConfiguration((EntityConfiguration**)o);
         CHECK(lmcp_unpack_EntityConfiguration(inb, size_remain, (EntityConfiguration*)(*o)))
@@ -355,6 +458,16 @@ int lmcp_unpack(uint8_t** inb, size_t size, lmcp_object **o) {
     case 15:
         lmcp_init_AirVehicleState((AirVehicleState**)o);
         CHECK(lmcp_unpack_AirVehicleState(inb, size_remain, (AirVehicleState*)(*o)))
+
+        break;
+    case 16:
+        lmcp_init_Wedge((Wedge**)o);
+        CHECK(lmcp_unpack_Wedge(inb, size_remain, (Wedge*)(*o)))
+
+        break;
+    case 31:
+        lmcp_init_LineSearchTask((LineSearchTask**)o);
+        CHECK(lmcp_unpack_LineSearchTask(inb, size_remain, (LineSearchTask*)(*o)))
 
         break;
     case 35:
@@ -422,6 +535,18 @@ uint32_t lmcp_pack(uint8_t* buf, lmcp_object* o) {
         return (outb - buf);
 
         break;
+    case 8:
+        outb += lmcp_pack_Task_header(outb, (Task*)o);
+        outb += lmcp_pack_Task(outb, (Task*)o);
+        return (outb - buf);
+
+        break;
+    case 9:
+        outb += lmcp_pack_SearchTask_header(outb, (SearchTask*)o);
+        outb += lmcp_pack_SearchTask(outb, (SearchTask*)o);
+        return (outb - buf);
+
+        break;
     case 11:
         outb += lmcp_pack_EntityConfiguration_header(outb, (EntityConfiguration*)o);
         outb += lmcp_pack_EntityConfiguration(outb, (EntityConfiguration*)o);
@@ -437,6 +562,18 @@ uint32_t lmcp_pack(uint8_t* buf, lmcp_object* o) {
     case 15:
         outb += lmcp_pack_AirVehicleState_header(outb, (AirVehicleState*)o);
         outb += lmcp_pack_AirVehicleState(outb, (AirVehicleState*)o);
+        return (outb - buf);
+
+        break;
+    case 16:
+        outb += lmcp_pack_Wedge_header(outb, (Wedge*)o);
+        outb += lmcp_pack_Wedge(outb, (Wedge*)o);
+        return (outb - buf);
+
+        break;
+    case 31:
+        outb += lmcp_pack_LineSearchTask_header(outb, (LineSearchTask*)o);
+        outb += lmcp_pack_LineSearchTask(outb, (LineSearchTask*)o);
         return (outb - buf);
 
         break;

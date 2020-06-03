@@ -131,46 +131,6 @@ bool FillWindow(  Waypoint ** ws,
 }
 
 
-size_t compute_addr_attr_lmcp_message_size(void *buffer, size_t buffer_length)
-{
-  static const uint8_t addr_attr_delim = '$';
-  static const uint8_t field_delim = '|';
-
-  void *end_of_address_delim = memchr(buffer, addr_attr_delim, buffer_length);
-  if (end_of_address_delim == NULL) {
-    errno = -1;
-    return 0;
-  }
-  ssize_t end_of_address_delim_offset = end_of_address_delim - buffer;
-  
-  void *end_of_attr_delim = memchr(end_of_address_delim + 1, addr_attr_delim, buffer_length - end_of_address_delim_offset - 1);
-  if (end_of_attr_delim == NULL) {
-    errno = -2;
-    return 0;
-  }
-  ssize_t end_of_attr_delim_offset = end_of_attr_delim - buffer;
-  
-  const size_t lmcp_control_string_size = 4;
-  const size_t checksum_size = 4;
-
-  uint8_t *lmcp_message_size_pos = end_of_attr_delim + sizeof(addr_attr_delim) + lmcp_control_string_size;
-  size_t lmcp_message_size = ((size_t) lmcp_message_size_pos[0] << 24)
-    + ((size_t) lmcp_message_size_pos[1] << 16)
-    + ((size_t) lmcp_message_size_pos[2] <<  8)
-    + ((size_t) lmcp_message_size_pos[3] <<  0);
-    
-  if (buffer + buffer_length < ((void *) lmcp_message_size_pos) + lmcp_message_size + checksum_size) {
-    fprintf(stdout, "apss: compute_addr_attr_lmcp_message_size: EoAddr %zu, EoAttr %zu, LMCP sz %zu\n",
-	    end_of_address_delim_offset, end_of_attr_delim_offset, lmcp_message_size); fflush(stdout);
-    errno = -4;
-    return 0;
-  }
-
-  errno = 0;
-  return ((size_t) ((void *) lmcp_message_size_pos - buffer)) + lmcp_control_string_size + lmcp_message_size + checksum_size;
-}
-
-
 //------------------------------------------------------------------------------
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "p1_in".

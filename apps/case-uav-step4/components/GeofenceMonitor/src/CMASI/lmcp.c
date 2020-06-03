@@ -13,6 +13,7 @@
 #include "VehicleAction.h"
 #include "Task.h"
 #include "SearchTask.h"
+#include "LineSearchTask.h"
 #include "EntityConfiguration.h"
 #include "EntityState.h"
 #include "AirVehicleState.h"
@@ -115,6 +116,10 @@ void lmcp_pp(lmcp_object *o) {
         lmcp_pp_Wedge((Wedge*)o);
 
         break;
+    case LINESEARCHTASK:
+        lmcp_pp_LineSearchTask((LineSearchTask*)o);
+
+        break;
     case WAYPOINT:
         lmcp_pp_Waypoint((Waypoint*)o);
 
@@ -188,6 +193,10 @@ uint32_t lmcp_packsize(lmcp_object* o) {
         return 15 + lmcp_packsize_Wedge((Wedge*)o);
 
         break;
+    case 31:
+        return 15 + lmcp_packsize_LineSearchTask((LineSearchTask*)o);
+
+        break;
     case 35:
         return 15 + lmcp_packsize_Waypoint((Waypoint*)o);
 
@@ -259,6 +268,10 @@ void lmcp_free(lmcp_object *o) {
         break;
     case 16:
         lmcp_free_Wedge((Wedge*)o, 1);
+
+        break;
+    case 31:
+        lmcp_free_LineSearchTask((LineSearchTask*)o, 1);
 
         break;
     case 35:
@@ -452,6 +465,11 @@ int lmcp_unpack(uint8_t** inb, size_t size, lmcp_object **o) {
         CHECK(lmcp_unpack_Wedge(inb, size_remain, (Wedge*)(*o)))
 
         break;
+    case 31:
+        lmcp_init_LineSearchTask((LineSearchTask**)o);
+        CHECK(lmcp_unpack_LineSearchTask(inb, size_remain, (LineSearchTask*)(*o)))
+
+        break;
     case 35:
         lmcp_init_Waypoint((Waypoint**)o);
         CHECK(lmcp_unpack_Waypoint(inb, size_remain, (Waypoint*)(*o)))
@@ -550,6 +568,12 @@ uint32_t lmcp_pack(uint8_t* buf, lmcp_object* o) {
     case 16:
         outb += lmcp_pack_Wedge_header(outb, (Wedge*)o);
         outb += lmcp_pack_Wedge(outb, (Wedge*)o);
+        return (outb - buf);
+
+        break;
+    case 31:
+        outb += lmcp_pack_LineSearchTask_header(outb, (LineSearchTask*)o);
+        outb += lmcp_pack_LineSearchTask(outb, (LineSearchTask*)o);
         return (outb - buf);
 
         break;

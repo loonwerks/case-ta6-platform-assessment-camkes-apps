@@ -74,8 +74,6 @@ void run_poll(void) {
 
     while (true) {
 
-#ifndef PASS_THRU
-
         if (invocations > 0) {
             invocations++;
         }
@@ -105,8 +103,6 @@ void run_poll(void) {
             total_invocations += invocations;
             invocations = 0;
         }
-
-#endif
 
         seL4_Yield();
     }

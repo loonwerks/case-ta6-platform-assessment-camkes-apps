@@ -33,6 +33,10 @@ DeclareCAmkESComponent(WaypointManager
     src/CMASI/VehicleAction.c
     src/CMASI/VehicleActionCommand.c
     src/CMASI/Waypoint.c
+    src/CMASI/LineSearchTask.c
+    src/CMASI/SearchTask.c
+    src/CMASI/Task.c
+    src/CMASI/Wedge.c
     src/CMASI/common/conv.c
     LIBS
     hexdump
