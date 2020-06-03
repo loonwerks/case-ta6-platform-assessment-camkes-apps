@@ -75,8 +75,9 @@ void ffiapi_get_AutomationRequest_in(unsigned char *parameter, long parameterSiz
   if (output[0]) {
     memcpy(output+1, attestationData->payload, attestationDataSizeBytes);
   }
-  
-  sprintf(attestationMsgBuffer, "\n\treceived AutomationRequest (%ld)", numRcvd);
+  if (numRcvd > 0) {
+    sprintf(attestationMsgBuffer, "\n\treceived AutomationRequest (%ld)", numRcvd);
+  }
   api_logInfo(attestationMsgBuffer);
 }
 
@@ -101,8 +102,9 @@ void ffiapi_get_OperatingRegion_in(unsigned char *parameter, long parameterSizeB
   if (output[0]) {
     memcpy(output+1, attestationData->payload, attestationDataSizeBytes);
   }
-  
-  sprintf(attestationMsgBuffer, "\n\treceived OperatingRegion (%ld)", numRcvd);
+  if (numRcvd > 0) {
+    sprintf(attestationMsgBuffer, "\n\treceived OperatingRegion (%ld)", numRcvd);
+  }
   api_logInfo(attestationMsgBuffer);
 }
 
@@ -127,8 +129,9 @@ void ffiapi_get_LineSearchTask_in(unsigned char *parameter, long parameterSizeBy
   if (output[0]) {
     memcpy(output+1, attestationData->payload, attestationDataSizeBytes);
   }
-  
-  sprintf(attestationMsgBuffer, "\n\treceived LineSearchTask (%ld)", numRcvd);
+  if (numRcvd > 0) {
+    sprintf(attestationMsgBuffer, "\n\treceived LineSearchTask (%ld)", numRcvd);
+  }
   api_logInfo(attestationMsgBuffer);
 }
 

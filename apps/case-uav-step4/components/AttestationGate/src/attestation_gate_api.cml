@@ -9,13 +9,13 @@ struct
   );
 
   val trusted_idsSizeBytes = Int.div 96 8;
-  val automationRequest_inSizeBytes = 8192 + 1;
-  val lineSearchTask_inSizeBytes = 8192 + 1; 
-  val operatingRegion_inSizeBytes = 8192 + 1;
+  val automationRequest_inSizeBytes = 8184;
+  val lineSearchTask_inSizeBytes = 8184; 
+  val operatingRegion_inSizeBytes = 8184;
   
-  val automationRequest_outSizeBytes = Int.div 2048 8;
+  val automationRequest_outSizeBytes = 8184;
   val lineSearchTask_outSizeBytes = 8184; 
-  val operatingRegion_outSizeBytes = Int.div 2048 8;
+  val operatingRegion_outSizeBytes = 8184;
   
   fun get_trusted_ids buffer = (
     if Word8Array.length buffer >= trusted_idsSizeBytes then

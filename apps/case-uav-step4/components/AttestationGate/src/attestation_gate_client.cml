@@ -148,7 +148,7 @@ fun dropBar s = String.substring s 0 (String.size s - 1);
 
 fun getID bytes = (
  if Word8Array.sub bytes 0 = w8zero then
-  None
+    None
  else
   case scanAA bytes 1
    of None => None
@@ -199,7 +199,8 @@ fun check tidArr idOpt =
 fun att_gate_seq tidArrOpt opregion lst autorqt =
   case tidArrOpt
    of None => (False,False,False)
-    | Some tidArr =>
+    | Some     
+    tidArr =>
       if check tidArr opregion then (True,False,False)
       else
       if check tidArr lst then (False,True,False)
@@ -234,6 +235,7 @@ fun fill_out_buffers() = (
     Word8Array.copy operating_region_buffer 1 (Word8Array.length operating_region_buffer - 1) operating_region_buffer_out 0
   ; Word8Array.copy linesearch_task_buffer 1 (Word8Array.length  linesearch_task_buffer - 1) linesearch_task_buffer_out 0
   ; Word8Array.copy automation_request_buffer 1 (Word8Array.length automation_request_buffer - 1) automation_request_buffer_out 0
+  ; API.logInfo (String.concat ["\n\tfill_out_buffers end\n"])
 )
 
 (*---------------------------------------------------------------------------*)
@@ -256,15 +258,15 @@ fun att_gate () =
      val (a,b,c)    = att_gate_seq tidArrOpt opregionID lstID autorqtID
      val _          = fill_out_buffers()
  in
-  API.logInfo (String.concat ["\n\t",
-                              (tid_array_to_string tidArrOpt),
-                              "\n\topregionID = ",
-                              id_to_string opregionID,
-                              "\n\tlstID = ",
-                              id_to_string lstID,
-                              "\n\tautorqtID = ",
-                              id_to_string autorqtID])
-  ;  (if a then API.send_OperatingRegion_out operating_region_buffer_out else ())
+(*  API.logInfo (String.concat ["\n\t",  *)
+(*                              (tid_array_to_string tidArrOpt),  *)
+(*                              "\n\topregionID = ",  *)
+(*                              id_to_string opregionID,  *)
+(*                              "\n\tlstID = ",  *)
+(*                              id_to_string lstID,  *)
+(*                              "\n\tautorqtID = ",  *)
+(*                              id_to_string autorqtID])  *)
+    (if a then API.send_OperatingRegion_out operating_region_buffer_out else ())
   ; (if b then API.send_LineSearchTask_out linesearch_task_buffer_out else ())
   ; (if c then API.send_AutomationRequest_out automation_request_buffer_out else ())
  end
