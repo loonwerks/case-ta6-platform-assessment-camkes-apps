@@ -74,8 +74,6 @@ void run_poll(void) {
 
     while (true) {
 
-#ifndef PASS_THRU
-
         if (invocations > 0) {
             invocations++;
         }
@@ -94,7 +92,7 @@ void run_poll(void) {
             invocations = 0;
         }
 
-        if (invocations > 120000) {
+        if (invocations > 2000) {
             printf("\n************************************\n");
             printf("** Response Monitor:              **\n");
             printf("** Expected a response from UxAS, **\n");
@@ -105,8 +103,6 @@ void run_poll(void) {
             total_invocations += invocations;
             invocations = 0;
         }
-
-#endif
 
         seL4_Yield();
     }
