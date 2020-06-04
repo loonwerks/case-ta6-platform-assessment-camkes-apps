@@ -83,4 +83,7 @@ struct
     in get(0)
   end;
 
+  fun float2double float_byte_array double_byte_array =
+    #(api_float2double) float_byte_array double_byte_array;
+
 end;
