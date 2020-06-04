@@ -141,9 +141,9 @@ the vulnerability.
 
 The unmanned air vehicle threat 3A1 application extends the case-uav-threat-3A1-unmitigated application by introducing
 high-assurance componenets including filters, gates and monitors to mitigate some cyber threats.  The OpenUxAS application
-contains the same injected trojan code as the case-uav-threat-3A1-unmitigated scenario, but the line search task filter catches
-the overrun and prevents the message from reaching the OpenUxAS application.  This results in the response monitor warning the
-user that an automation response was expected but none was generated.
+contains the same injected trojan code as the case-uav-threat-3A1-unmitigated scenario.  Once the overly-lengthy waypoint list
+reaches the OpenUxAS application, the vulnerability is triggered and the OpenUxAS application fails to generate an automation
+response.  The response monitor responds by warning the user that an automation response was expected but none was generated.
 
 ### case-uav-threat-3A2-unmitigated
 
