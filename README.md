@@ -14,8 +14,9 @@ git clone https://github.com/SEL4PROJ/seL4-CAmkES-L4v-dockerfiles.git
 ~~~
 
 OpenUxAS uses the [meson build system](https://mesonbuild.com/) and this must be accessible when running the build
-described below.  But, it isn't installed by default in the docker containers for the CAmkES environment.  This may be
-easily remedied by adding it in the extras.dockerfile.  Edit seL4-CAmkES-L4v-dockerfiles/dockerfiles/extras.dockerfile (using vi or
+described below.  But, it isn't installed by default in the docker containers for the CAmkES environment.  Likewise,
+building the CakeML filter components requires the CakeML compiler targeting the ARM7L architecture.  This items may be
+easily installed by adding to the extras.dockerfile.  Edit seL4-CAmkES-L4v-dockerfiles/dockerfiles/extras.dockerfile (using vi or
 your favorite editor) and adding the lines at the end of the file.
 
 ~~~
@@ -25,7 +26,7 @@ RUN apt-get update -q \
     && apt-get autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
-RUN curl https://cakeml.org/cake-x64-32.tar.gz > cake-x64-32.tar.gz \
+RUN curl http://www.cse.chalmers.se/~myreen/cake-1239-x64-32.tar.gz > cake-x64-32.tar.gz \
     && tar -xvzf cake-x64-32.tar.gz && cd cake-x64-32 && make cake \
     && mv cake /usr/bin/cake32
 ~~~
