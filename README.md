@@ -137,6 +137,14 @@ This application is intended to demonstrate that such an attack succeeds if high
 corresponding line search task message definition XML file containing an overly-long waypoint list is then used to demonstrate
 the vulnerability.
 
+### case-uav-threat-3A1
+
+The unmanned air vehicle threat 3A1 application extends the case-uav-threat-3A1-unmitigated application by introducing
+high-assurance componenets including filters, gates and monitors to mitigate some cyber threats.  The OpenUxAS application
+contains the same injected trojan code as the case-uav-threat-3A1-unmitigated scenario, but the line search task filter catches
+the overrun and prevents the message from reaching the OpenUxAS application.  This results in the response monitor warning the
+user that an automation response was expected but none was generated.
+
 ### case-uav-threat-3A2-unmitigated
 
 The unmanned air vehicle threat 3A2 unmitigated application extends the case-uav-step4 application by intruducing the threat
@@ -145,17 +153,39 @@ This application is intended to demonstrate that such an attack succeeds if high
 corresponding line search task message definition XML file containing an waypoints with out-of-rage longitude values is then
 used to demonstrate the vulnerability.
 
+### case-uav-threat-3A2
+
+The unmanned air vehicle threat 3A2 application extends the case-uav-threat-3A2-unmitigated application by introducing
+high-assurance componenets including filters, gates and monitors to mitigate some cyber threats.  The OpenUxAS application
+contains the same injected trojan code as the case-uav-threat-3A2-unmitigated scenario, but the line search task filter catches
+the faulty waypoint longitudes and prevents the message from reaching the OpenUxAS application.  This results in the response
+monitor warning the user that an automation response was expected but none was generated.
+
 ### case-uav-threat-10A-unmitigated
 
 The unmanned air vehicle threat 10A unmitigated application extends the case-uav-step4 application by intruducing the threat
 trojan code to inject undesired behavior in the form of commanding the UAV to fly through a Keep-Out-Zone airspace. This
 application is intended to demonstrate that such an attack succeeds if high-assurance mitigations are not in place.
 
-### case-uav-threat-10A-unmitigated
+### case-uav-threat-10A
+
+The unmanned air vehicle threat 10A application extends the case-uav-threat-10A-unmitigated application by introducing
+high-assurance componenets including filters, gates and monitors to mitigate some cyber threats.  The OpenUxAS application
+contains the same injected trojan code as the case-uav-threat-10A-unmitigated scenario, but the line search task filter catches
+the waypoints located in the keep-out zone and triggers an alert to send the UAV back to home base.
+
+### case-uav-threat-10B-unmitigated
 
 The unmanned air vehicle threat 10B unmitigated application extends the case-uav-step4 application by intruducing the threat
 trojan code to inject undesired behavior in the form of commanding the UAV to fly into a (hypothetical) tethered balloon. This
 application is intended to demonstrate that such an attack succeeds if high-assurance mitigations are not in place.
+
+### case-uav-threat-10B
+
+The unmanned air vehicle threat 10B application extends the case-uav-threat-10B-unmitigated application by introducing
+high-assurance componenets including filters, gates and monitors to mitigate some cyber threats.  The OpenUxAS application
+contains the same injected trojan code as the case-uav-threat-10B-unmitigated scenario, but the line search task filter catches
+the suspicious waypoints and triggers an alert to send the UAV back to home base.
 
 ## Installing on ODROID-XU4
 
