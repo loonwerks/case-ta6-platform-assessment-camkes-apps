@@ -24,6 +24,7 @@
 
 // Forward declarations
 void alert_out_event_data_send(data_t *data);
+void automation_response_out_event_data_send(data_t *data);
 
 double keepInLat[2] = {45.30039972874535, 45.34531548097283};
 double keepInLong[2] = {-121.01472992576784, -120.91251955738149};
@@ -161,6 +162,12 @@ static void done_emit(void) {
 void alert_out_event_data_send(data_t *data) {
     queue_enqueue(alert_out_queue, data);
     alert_out_SendEvent_emit();
+    done_emit();
+}
+
+void automation_response_out_event_data_send(data_t *data) {
+    queue_enqueue(automation_response_out_queue, data);
+    automation_response_out_SendEvent_emit();
     done_emit();
 }
 
