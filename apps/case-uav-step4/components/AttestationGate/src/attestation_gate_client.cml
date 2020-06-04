@@ -235,7 +235,6 @@ fun fill_out_buffers() = (
     Word8Array.copy operating_region_buffer 1 (Word8Array.length operating_region_buffer - 1) operating_region_buffer_out 0
   ; Word8Array.copy linesearch_task_buffer 1 (Word8Array.length  linesearch_task_buffer - 1) linesearch_task_buffer_out 0
   ; Word8Array.copy automation_request_buffer 1 (Word8Array.length automation_request_buffer - 1) automation_request_buffer_out 0
-  ; API.logInfo (String.concat ["\n\tfill_out_buffers end\n"])
 )
 
 (*---------------------------------------------------------------------------*)

@@ -67,8 +67,9 @@ void ffiapi_get_filter_in(unsigned char *parameter, long parameterSizeBytes, uns
   }
   if (numRcvd > 0) {
     sprintf(lineSearchTaskFilterMsgBuffer, "\n\treceived LineSearchTask (%ld)", numRcvd);
+    api_logInfo(lineSearchTaskFilterMsgBuffer);
   }
-  api_logInfo(lineSearchTaskFilterMsgBuffer);
+  
 }
 
 extern void line_search_task_out_event_data_send(data_t*);
