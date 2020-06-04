@@ -1,0 +1,21 @@
+(* This structure is populated with HAMR-generated code *)
+structure Control =
+struct
+
+  val empty_byte_array = Word8Array.array 0 (Word8.fromInt 0);  
+  
+  fun yield() = (
+    #(seL4_yield) "" empty_byte_array
+  );
+    
+  fun loop () = (
+    Client.timeTriggered();
+    yield();
+    loop()
+  );
+
+end;
+
+(* Startup *)
+val _ = Client.initialise();
+val _ = Control.loop();

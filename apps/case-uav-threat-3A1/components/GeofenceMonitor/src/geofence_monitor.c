@@ -187,6 +187,8 @@ void post_init(void) {
     queue_init(alert_out_queue);
 }
 
+/* Implemented by CakeML */
+
 int run(void) {
 
     run_poll();

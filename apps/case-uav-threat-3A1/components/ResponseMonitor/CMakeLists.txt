@@ -19,6 +19,7 @@ DeclareCAmkESComponent(ResponseMonitor
     SOURCES
     src/response_monitor.c
     LIBS
+    CMASI
     hexdump
     queue
 )
