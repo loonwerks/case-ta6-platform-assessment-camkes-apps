@@ -249,14 +249,15 @@ fun id_to_string idOpt =
 ;
 
 fun att_gate () =
- let val _          = fill_buffers()
-     val tidArrOpt  = mk_tid_array()
-     val opregionID = getID operating_region_buffer
-     val lstID      = getID linesearch_task_buffer
-     val autorqtID  = getID automation_request_buffer
-     val (a,b,c)    = att_gate_seq tidArrOpt opregionID lstID autorqtID
-     val _          = fill_out_buffers()
- in
+  let
+    val _          = fill_buffers()
+    val tidArrOpt  = mk_tid_array()
+    val opregionID = getID operating_region_buffer
+    val lstID      = getID linesearch_task_buffer
+    val autorqtID  = getID automation_request_buffer
+    val (a,b,c)    = att_gate_seq tidArrOpt opregionID lstID autorqtID
+(*  val _          = fill_out_buffers() *)
+  in
 (*  API.logInfo (String.concat ["\n\t",  *)
 (*                              (tid_array_to_string tidArrOpt),  *)
 (*                              "\n\topregionID = ",  *)
@@ -265,10 +266,28 @@ fun att_gate () =
 (*                              id_to_string lstID,  *)
 (*                              "\n\tautorqtID = ",  *)
 (*                              id_to_string autorqtID])  *)
+
+(*
     (if a then API.send_OperatingRegion_out operating_region_buffer_out else ())
   ; (if b then API.send_LineSearchTask_out linesearch_task_buffer_out else ())
   ; (if c then API.send_AutomationRequest_out automation_request_buffer_out else ())
- end
+*)
+
+    (if a then (
+      Word8Array.copy operating_region_buffer 1 (Word8Array.length operating_region_buffer - 1) operating_region_buffer_out 0;
+      API.send_OperatingRegion_out operating_region_buffer_out)
+     else ())
+    ;
+    (if b then (
+      Word8Array.copy linesearch_task_buffer 1 (Word8Array.length  linesearch_task_buffer - 1) linesearch_task_buffer_out 0;
+      API.send_LineSearchTask_out linesearch_task_buffer_out)
+     else ())
+    ;
+    (if c then (
+      Word8Array.copy automation_request_buffer 1 (Word8Array.length automation_request_buffer - 1) automation_request_buffer_out 0;
+      API.send_AutomationRequest_out automation_request_buffer_out)
+     else ())
+  end
 
   fun initialise() = ();
 
