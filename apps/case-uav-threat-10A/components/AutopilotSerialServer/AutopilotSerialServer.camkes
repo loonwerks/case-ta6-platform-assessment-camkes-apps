@@ -1,0 +1,58 @@
+/*
+ * Copyright 2017, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
+ *
+ * Copyright 2020 Collins Aerospace
+ * Modifications made to original
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 3-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD3.txt" for details.
+ */
+
+#include <plat/apss_serial.h>
+
+import <std_connector.camkes>;
+import <TimeServer/TimeServer.camkes>;
+import <global-connectors.camkes>;
+import <serial.camkes>;
+
+
+component AutopilotSerialServer {
+    include <queue.h>;
+    control;
+    has mutex serial;
+
+    // mission_command_in - AADL Event Data Port (in) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    consumes SendEvent mission_command_in_SendEvent;
+    dataport queue_t mission_command_in_queue;
+
+    // air_vehicle_state_out_1 - AADL Event Data Port (out) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    emits SendEvent air_vehicle_state_out_1_SendEvent;
+    dataport queue_t air_vehicle_state_out_1_queue;
+
+    // air_vehicle_state_out_2 - AADL Event Data Port (out) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    emits SendEvent air_vehicle_state_out_2_SendEvent;
+    dataport queue_t air_vehicle_state_out_2_queue;
+
+
+    /* Size of the driver's heap */
+    attribute int heap_size = 512 * 1024;
+
+    APSS_HARDWARE_SERIAL_INTERFACES
+    APSS_HARDWARE_SERIAL_ATTRIBUTES
+
+    composition {
+        APSS_HARDWARE_SERIAL_COMPOSITION
+    }
+
+    configuration {
+        APSS_HARDWARE_SERIAL_CONFIG
+    }
+
+}
+
