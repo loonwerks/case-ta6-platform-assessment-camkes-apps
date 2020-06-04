@@ -847,11 +847,21 @@ val location3D = Recd [
   ("AltitudeType", uxasAltitudeType)
 ];
 
-val pos90 = Double.fromString "90.0";
-val pos180 = Double.fromString "180.0";
+(*---------------------------------------------------------------------------*)
+(* Laboriously construct some Double constants in order to avoid             *)
+(* Double.fromString.                                                        *)
+(*---------------------------------------------------------------------------*)
+
+val ints90BE = [64, 86, 128, 0, 0, 0, 0, 0]
+val ints180BE = [64, 102, 128, 0, 0, 0, 0, 0]
+
+val s90 = String.implode (List.map Char.chr ints90BE)
+val s180 = String.implode (List.map Char.chr ints180BE)
+
+val pos90 = dvalFn s90
+val pos180 = dvalFn s180;
 val neg90 = Double.~(pos90)
 val neg180 = Double.~(pos180);
-
 
 val checked_location3D = Recd [
   ("Latitude",  real64),
@@ -1137,7 +1147,7 @@ val mk_i64 = valFn (Contig.Signed 8);
 
 fun checkLen n s = if String.size s <> n then print "\n!checkLen ERROR!\n\n" else ()
 
-fun mk_float s  = Double.fromString "42.0";
+fun mk_float s  = Contig.pos90; (*Double.fromString "42.0";*)
 
 fun mk_double s =
  let val r = dvalFn s

@@ -11,7 +11,7 @@ struct
   val data_t_max_payload = 8192 - 8;
   val keep_in_zoneSizeBytes = 48;
   val keep_out_zoneSizeBytes = 48;
-  val observedSizeBytes = data_t_max_payload + 1; 
+  val observedSizeBytes = data_t_max_payload; 
   
   val outputSizeBytes = data_t_max_payload;
   
