@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <counter.h>
-#include <data.h>
-#include <queue.h>
+#include <am_counter.h>
+#include <am_data.h>
+#include <am_queue.h>
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -27,8 +27,15 @@
 // User specified input data receive handler for AADL Input Event Data Port (in) named
 // "p1_in".
 void trusted_ids_in_event_data_receive(counter_t numDropped, data_t *data) {
-    printf("%s: received trusted ids: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
-    hexdump("    ", 32, data->payload, sizeof(data->payload));
+    printf("%s received trusted id list:", get_instance_name());
+    for(int i = 0; i < 3; i++) {
+        printf(" ");
+        for(int j = 0; j < 4; j++)
+            printf("%02X", data->payload[4*i+j]);
+    }
+    printf("; numDropped: %" PRIcounter "\n", numDropped);
+    // printf("%s: received trusted ids: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped);
+    // hexdump("    ", 32, data->payload, sizeof(data->payload));
 }
 
 recv_queue_t trustedIdsInRecvQueue;
@@ -47,9 +54,9 @@ bool trusted_ids_in_event_data_poll(counter_t *numDropped, data_t *data) {
 //     // hexdump("    ", 32, data->payload, sizeof(data->payload));
 //     operating_region_out_event_data_send(data);
 // }
-// 
+//
 // recv_queue_t operatingRegionInRecvQueue;
-// 
+//
 // Assumption: only one thread is calling this and/or reading p1_in_recv_counter.
 // bool operating_region_in_event_data_poll(counter_t *numDropped, data_t *data) {
 //     return queue_dequeue(&operatingRegionInRecvQueue, numDropped, data);
@@ -64,10 +71,10 @@ bool trusted_ids_in_event_data_poll(counter_t *numDropped, data_t *data) {
 //     // hexdump("    ", 32, data->payload, sizeof(data->payload));
 //     line_search_task_out_event_data_send(data);
 // }
-// 
-// 
+//
+//
 // recv_queue_t lineSearchTaskInRecvQueue;
-// 
+//
 // Assumption: only one thread is calling this and/or reading p1_in_recv_counter.
 // bool line_search_task_in_event_data_poll(counter_t *numDropped, data_t *data) {
 //     return queue_dequeue(&lineSearchTaskInRecvQueue, numDropped, data);
@@ -82,10 +89,10 @@ bool trusted_ids_in_event_data_poll(counter_t *numDropped, data_t *data) {
 //     // hexdump("    ", 32, data->payload, sizeof(data->payload));
 //     automation_request_out_event_data_send(data);
 // }
-// 
-// 
+//
+//
 // recv_queue_t automationRequestInRecvQueue;
-// 
+//
 // Assumption: only one thread is calling this and/or reading p1_in_recv_counter.
 // bool automation_request_in_event_data_poll(counter_t *numDropped, data_t *data) {
 //     return queue_dequeue(&automationRequestInRecvQueue, numDropped, data);
@@ -169,4 +176,3 @@ int run(void) {
 
     run_poll();
 }
-

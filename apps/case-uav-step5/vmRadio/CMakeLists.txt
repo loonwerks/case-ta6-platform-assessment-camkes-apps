@@ -160,6 +160,30 @@ function(MyAddExternalProjFilesToOverlay external_target external_install_dir ov
 endfunction(MyAddExternalProjFilesToOverlay)
 
 ExternalProject_Add(
+    useram
+    GIT_REPOSITORY
+    https://github.com/gaj7/am-bin-uav.git
+    GIT_TAG
+    master
+    INSTALL_COMMAND
+    ""
+    UPDATE_COMMAND
+    ""
+    CONFIGURE_COMMAND
+    ""
+    BUILD_COMMAND
+    ""
+)
+MyAddExternalProjFilesToOverlay(
+    useram
+    ${CMAKE_CURRENT_BINARY_DIR}/useram-prefix/src/useram
+    overlay_radio
+    "usr/bin"
+    FILES
+    uav
+)
+
+ExternalProject_Add(
     camkes_log_relay
     SOURCE_DIR
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/camkes_log_relay
@@ -194,7 +218,7 @@ ExternalProject_Add(
     INSTALL_COMMAND
     ""
     UPDATE_COMMAND
-    "" 
+    ""
     CONFIGURE_COMMAND
     cd <SOURCE_DIR> && ./prepare && cd <BINARY_DIR> && meson setup <BINARY_DIR> <SOURCE_DIR> --cross-file=<SOURCE_DIR>/camkes-vm-arm-linux-gnueabi-cross-file.txt --buildtype=release
     BUILD_COMMAND
@@ -275,4 +299,3 @@ DeclareCAmkESComponent(Radio_VM LIBS queue)
 CAmkESAddCPPInclude(${CAMKES_ARM_VM_DIR}/components/VM)
 
 DeclareCAmkESARMVM(Radio_VM)
-

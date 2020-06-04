@@ -54,6 +54,9 @@ hvc0:2345:respawn:/sbin/getty -L 9600 hvc0
 ::wait:chmod g+rw /dev/uio3
 ::wait:chmod g+rw /dev/uio4
 
+# Run AM
+::respawn:uav
+
 # Run UxAS
 # ::respawn:su uxas -c "/usr/bin/camkes_log_relay /dev/uio3 192.168.2.2:5578"
 ::respawn:su uxas -c "mkdir -p /home/uxas/ex/p2/01_Waterway/RUNDIR && cd /home/uxas/ex/p2/01_Waterway/RUNDIR && /home/uxas/build/uxas -cfgPath /home/uxas/ex/p2/01_Waterway/cfg_WaterwaySearch_UAV.xml"
