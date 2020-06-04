@@ -96,9 +96,10 @@ void ffiapi_get_observed(unsigned char *parameter, long parameterSizeBytes, unsi
   if (output[0]) {
     memcpy(output+1, geoFenceData->payload, geoFenceDataSizeBytes);
   }
-  
-  sprintf(geoFenceMsgBuffer, "\n\treceived AutomationRequest (%ld)", numRcvd);
-  api_logInfo(geoFenceMsgBuffer);
+  if (numRcvd > 0) {
+    sprintf(geoFenceMsgBuffer, "\n\treceived AutomationRequest (%ld)", numRcvd);
+    api_logInfo(geoFenceMsgBuffer);
+  }
 }
 
 void ffiapi_send_output(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes) {

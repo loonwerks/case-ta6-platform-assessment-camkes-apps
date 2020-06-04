@@ -77,8 +77,9 @@ void ffiapi_get_AutomationRequest_in(unsigned char *parameter, long parameterSiz
   }
   if (numRcvd > 0) {
     sprintf(attestationMsgBuffer, "\n\treceived AutomationRequest (%ld)", numRcvd);
+    api_logInfo(attestationMsgBuffer);
   }
-  api_logInfo(attestationMsgBuffer);
+  
 }
 
 extern void automation_request_out_event_data_send(data_t*);
@@ -104,8 +105,9 @@ void ffiapi_get_OperatingRegion_in(unsigned char *parameter, long parameterSizeB
   }
   if (numRcvd > 0) {
     sprintf(attestationMsgBuffer, "\n\treceived OperatingRegion (%ld)", numRcvd);
+    api_logInfo(attestationMsgBuffer);
   }
-  api_logInfo(attestationMsgBuffer);
+  
 }
 
 extern void operating_region_out_event_data_send(data_t*);
@@ -131,8 +133,9 @@ void ffiapi_get_LineSearchTask_in(unsigned char *parameter, long parameterSizeBy
   }
   if (numRcvd > 0) {
     sprintf(attestationMsgBuffer, "\n\treceived LineSearchTask (%ld)", numRcvd);
+    api_logInfo(attestationMsgBuffer);
   }
-  api_logInfo(attestationMsgBuffer);
+  
 }
 
 extern void line_search_task_out_event_data_send(data_t*);
