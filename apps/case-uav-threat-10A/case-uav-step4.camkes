@@ -97,6 +97,9 @@ assembly {
 	component ResponseMonitor response_monitor;
 	component GeofenceMonitor geofence_monitor;
 
+        // Note: due to the VM_VIRTUAL_SERIAL_COMPOSITION_DEF we already have a TimeServer named time_server
+        connection seL4TimeServer response_monitor_timer(from response_monitor.timeout, to time_server.the_timer);
+
         connection seL4Notification event_conn_01(from vmRadio.operating_region_out_ready, to attestation_gate.operating_region_in_SendEvent);
         connection seL4SharedDataWithCaps data_conn_01(from vmRadio.operating_region_out_crossvm_dp, to attestation_gate.operating_region_in_queue);
 

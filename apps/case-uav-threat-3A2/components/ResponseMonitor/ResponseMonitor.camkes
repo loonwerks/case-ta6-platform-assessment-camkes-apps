@@ -11,6 +11,8 @@
  * See "LICENSE_BSD3.txt" for details.
  */
 
+import <Timer.idl4>;
+
 component ResponseMonitor {
     include <queue.h>;
     control;
@@ -25,6 +27,6 @@ component ResponseMonitor {
     consumes SendEvent automation_response_in_SendEvent;
     dataport queue_t automation_response_in_queue;
 
-
+    uses Timer timeout;
 }
 

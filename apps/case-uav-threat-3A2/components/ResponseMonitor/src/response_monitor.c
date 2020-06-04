@@ -18,6 +18,8 @@
 #include "AutomationResponse.h"
 #include "lmcp.h"
 
+#define TICK_PERIOD (250 * NS_IN_MS)
+#define AUTOMATION_RESPONSE_TIMEOUT (5000 * NS_IN_MS)
 
 //------------------------------------------------------------------------------
 // User specified input data receive handler for AADL Input Event Data Port (in) named
@@ -80,11 +82,18 @@ static void done_emit(void) {
 }
 
 
+seL4_CPtr timeout_notification(void);
+
 
 void run_poll(void) {
     counter_t numDropped;
     data_t data;
+
     uint32_t invocations = 0;
+
+    seL4_Word badge;
+    seL4_CPtr notification = timeout_notification();
+    timeout_periodic(0, TICK_PERIOD);
 
     while (true) {
 
@@ -105,7 +114,7 @@ void run_poll(void) {
             }
         }
 
-        if (invocations > 2000) {
+        if (invocations > (AUTOMATION_RESPONSE_TIMEOUT / TICK_PERIOD)) {
             printf("\n************************************\n");
             printf("** Response Monitor:              **\n");
             printf("** Expected a response from UxAS, **\n");
@@ -116,7 +125,7 @@ void run_poll(void) {
             invocations = 0;
         }
 
-        seL4_Yield();
+        seL4_Wait(notification, &badge);
     }
 
 }
