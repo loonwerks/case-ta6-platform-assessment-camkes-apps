@@ -117,6 +117,12 @@ void ffiapi_send_alert(unsigned char *parameter, long parameterSizeBytes, unsign
   alert_out_event_data_send(geoFenceData);
 }
 
+void ffiapi_float2double(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes)
+{
+  double result = *((float*)parameter);
+  memcpy(output, (unsigned char*) &result, sizeof(double));
+}
+
 /**
  * PACER
  */

@@ -18,6 +18,8 @@ project(ComponentLineSearchTaskFilter C)
 DeclareCAmkESComponent(LineSearchTaskFilter
     SOURCES
     src/line_search_task_filter.c
+    src/line_search_task_filter_ffi.c
+    src/line_search_task_filter.S
     LIBS
     CMASI
     hexdump

@@ -96,9 +96,10 @@ void ffiapi_get_observed(unsigned char *parameter, long parameterSizeBytes, unsi
   if (output[0]) {
     memcpy(output+1, geoFenceData->payload, geoFenceDataSizeBytes);
   }
-  
-  sprintf(geoFenceMsgBuffer, "\n\treceived AutomationRequest (%ld)", numRcvd);
-  api_logInfo(geoFenceMsgBuffer);
+  if (numRcvd > 0) {
+    sprintf(geoFenceMsgBuffer, "\n\treceived AutomationRequest (%ld)", numRcvd);
+    api_logInfo(geoFenceMsgBuffer);
+  }
 }
 
 void ffiapi_send_output(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes) {
@@ -114,6 +115,12 @@ void ffiapi_send_alert(unsigned char *parameter, long parameterSizeBytes, unsign
   checkBufferOverrun(geoFenceDataSizeBytes, parameterSizeBytes);
   clearGeoFenceData();
   alert_out_event_data_send(geoFenceData);
+}
+
+void ffiapi_float2double(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes)
+{
+  double result = *((float*)parameter);
+  memcpy(output, (unsigned char*) &result, sizeof(double));
 }
 
 /**

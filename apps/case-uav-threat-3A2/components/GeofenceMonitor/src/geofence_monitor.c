@@ -188,10 +188,10 @@ void post_init(void) {
 }
 
 /* Implemented by CakeML */
- 
-int run(void) {
- 
-    run_poll();
-
-}
+// 
+// int run(void) {
+// 
+//     run_poll();
+// 
+// }
 

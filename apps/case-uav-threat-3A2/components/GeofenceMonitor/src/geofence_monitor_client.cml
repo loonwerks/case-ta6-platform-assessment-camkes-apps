@@ -466,7 +466,6 @@ fun dvalFn s =
        val b8 = char2byte(String.sub s 7)
    in
      Word64.concatAll b8 b7 b6 b5 b4 b3 b2 b1
-     (* Word64.fromInt 0 *)
    end
  else raise ERR "dvalFn" "expected 8 bytes";
 
@@ -860,8 +859,10 @@ val s180 = String.implode (List.map Char.chr ints180BE)
 
 val pos90 = dvalFn s90
 val pos180 = dvalFn s180;
+
 val neg90 = Double.~(pos90)
 val neg180 = Double.~(pos180);
+
 
 val checked_location3D = Recd [
   ("Latitude",  real64),
@@ -1060,8 +1061,6 @@ val fullAirVehicleStateMesg =
 
 end (* Contig *)
 
-
-
 structure Geofence_Types =
 struct
 
@@ -1145,17 +1144,24 @@ val dvalFn = Contig.dvalFn;
 
 val mk_i64 = valFn (Contig.Signed 8);
 
-fun checkLen n s = if String.size s <> n then print "\n!checkLen ERROR!\n\n" else ()
-
-fun mk_float s  = Contig.pos90; (*Double.fromString "42.0";*)
-
-fun mk_double s =
- let val r = dvalFn s
-(*   val rstring = Double.toString r
+(*---------------------------------------------------------------------------*)
+(* Debug stuff for mk_double
+  fun checkLen n s =
+    if String.size s <> n then print "\n!checkLen ERROR!\n\n" else ()
+  val rstring = Double.toString r
      val () = checkLen 8 s
      val () = print ("mk_double("^s^") = "^rstring^"\n")
 *)
- in r end
+(*---------------------------------------------------------------------------*)
+
+fun mk_double s = dvalFn s;
+
+val double_buffer = Word8Array.array 8 (Word8.fromInt 0);
+
+fun mk_float s =
+ let val () = API.float2double s double_buffer
+ in mk_double (Word8Array.substring double_buffer 0 8)
+ end
 
 fun mk_leaf f leaf =
  case leaf
@@ -1416,7 +1422,6 @@ fun mk_AR_event ptree = (* : AutomationResponse option *)
 end (* Geofence_Types *)
 
 
-
 structure Geofence_Monitor =
 struct
 
@@ -1431,6 +1436,7 @@ val w8zero = Word8.fromInt 0;
 val kizone_buffer   = Word8Array.array API.keep_in_zoneSizeBytes w8zero
 val kozone_buffer   = Word8Array.array API.keep_out_zoneSizeBytes w8zero
 val observed_buffer = Word8Array.array API.observedSizeBytes w8zero
+
 
 val emptybuf = Word8Array.array 0 w8zero;
 
@@ -1492,6 +1498,48 @@ fun waypoints_not_in_zone missioncmd zone =
  ;
 
 fun get_mission_command aresponse = Array.sub (mclist_of aresponse) 0
+
+fun number_of wpt =
+ case wpt
+  of Geofence_Types.WPT
+       loc3D n next_wpt speed speedTy
+       climbrate turnTy valist cwptA cwptB atasks => n;
+
+fun next_of wpt =
+ case wpt
+  of Geofence_Types.WPT
+       loc3D n next_wpt speed speedTy
+       climbrate turnTy valist cwptA cwptB atasks => next_wpt;
+
+fun is_last_waypoint wpt = (number_of wpt = next_of wpt);
+
+fun waypointEquiv wpt1 =
+ let val locn1 = location_of wpt1
+     val lat1 = lat_of locn1
+     val lon1 = lon_of locn1
+     val alt1 = alt_of locn1
+ in
+ fn wpt2 =>
+  let val locn2 = location_of wpt2
+      val lat2 = lat_of locn2
+      val lon2 = lon_of locn2
+      val alt2 = alt_of locn2
+  in
+  not (is_last_waypoint wpt2)
+  andalso number_of wpt2 = next_of wpt1
+  andalso Double.= lat2 lat1
+  andalso Double.= lon2 lon1
+  andalso Double.= alt2 alt1
+ end
+end
+
+fun is_duplicate cmd wpt =
+    Array.exists (waypointEquiv wpt) (waypoints_of cmd);
+
+fun duplicates_in_mission cmd =
+ Array.exists
+   (fn wpt => not (is_last_waypoint wpt) andalso is_duplicate cmd wpt)
+   (waypoints_of cmd);
 
 (*---------------------------------------------------------------------------*)
 (* DFA generated from pLTL property. The property is violated when the DFA   *)
@@ -1568,9 +1616,13 @@ fun stepDFA kizone kozone responseOpt =
      val v1 = v0 andalso
               waypoints_in_zone
                   (get_mission_command(Option.valOf responseOpt)) kizone
-     val v2 = v0 andalso
-              waypoints_not_in_zone
-                (get_mission_command(Option.valOf responseOpt)) kozone
+     val v2 = v0
+              andalso
+               waypoints_not_in_zone
+                 (get_mission_command(Option.valOf responseOpt)) kozone
+              andalso
+               not(duplicates_in_mission
+                  (get_mission_command(Option.valOf responseOpt)))
      val obsVals = [(v0,"obsVar_1"),(v1,"obsVar_2"),(v2,"obsVar_3")]
      val () = (dfaState := dfaTransition obsVals (!dfaState))
  in
