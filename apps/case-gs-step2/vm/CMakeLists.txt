@@ -158,8 +158,8 @@ ExternalProject_Add(
     true
     INSTALL_COMMAND
     ""
-    BUILD_ALWAYS
-    ON
+    UPDATE_COMMAND
+    ""
     CONFIGURE_COMMAND
     cd <SOURCE_DIR> && ./prepare && cd <BINARY_DIR> && meson setup <BINARY_DIR> <SOURCE_DIR> --cross-file=<SOURCE_DIR>/camkes-vm-arm-linux-gnueabi-cross-file.txt --buildtype=release
     BUILD_COMMAND
