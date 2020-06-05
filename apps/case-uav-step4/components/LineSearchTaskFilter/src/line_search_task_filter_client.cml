@@ -1101,7 +1101,7 @@ fun filter_step () =
                                     "** Line Search Task Filter **\n",
                                     "** prevented a malformed   **\n",
                                     "** message from reaching   **\n",
-                                    "** flight planner.         **\n",
+                                    "** the flight planner.     **\n",
                                     "*****************************\n\n"])
     )
     else ()
