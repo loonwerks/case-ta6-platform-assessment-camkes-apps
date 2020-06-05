@@ -85,6 +85,30 @@ function(MyAddExternalProjFilesToOverlay external_target external_install_dir ov
 endfunction(MyAddExternalProjFilesToOverlay)
 
 ExternalProject_Add(
+    useram
+    GIT_REPOSITORY
+    https://github.com/gaj7/am-bin-gs.git
+    GIT_TAG
+    master
+    INSTALL_COMMAND
+    ""
+    UPDATE_COMMAND
+    ""
+    CONFIGURE_COMMAND
+    ""
+    BUILD_COMMAND
+    ""
+)
+MyAddExternalProjFilesToOverlay(
+    useram
+    ${CMAKE_CURRENT_BINARY_DIR}/useram-prefix/src/useram
+    overlay_radio
+    "usr/bin"
+    FILES
+    groundstation
+)
+
+ExternalProject_Add(
     UxASGS
     GIT_REPOSITORY
     https://github.com/loonwerks/case-ta6-experimental-platform-OpenUxAS.git
@@ -191,4 +215,3 @@ CAmkESAddImportPath(${CMAKE_CURRENT_SOURCE_DIR}/${KernelARMPlatform}/)
 # DeclareCAmkESComponent(VM LIBS queue)
 
 CAmkESAddCPPInclude(${CAMKES_ARM_VM_DIR}/components/VM)
-

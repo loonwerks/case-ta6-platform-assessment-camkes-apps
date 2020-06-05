@@ -19,6 +19,7 @@ camkes_arm_vm_import_project()
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/hexdump)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/camkes_log_queue)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/am_queue)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/queue)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/AttestationGate)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/AutopilotSerialServer)
@@ -34,4 +35,3 @@ DeclareCAmkESRootserver(case-uav-step5.camkes)
 AddToFileServer("linux" "${CAMKES_VM_IMAGES_DIR}/${KernelARMPlatform}/linux")
 
 DefineCAmkESVMFileServer()
-

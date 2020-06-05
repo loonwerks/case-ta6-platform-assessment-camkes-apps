@@ -34,6 +34,9 @@ null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 # Put a getty on the serial port
 hvc0:2345:respawn:/sbin/getty -L 9600 hvc0
 
+# Run AM
+::respawn:groundstation
+
 # Stuff to do for the 3-finger salute
 #::ctrlaltdel:/sbin/reboot
 
