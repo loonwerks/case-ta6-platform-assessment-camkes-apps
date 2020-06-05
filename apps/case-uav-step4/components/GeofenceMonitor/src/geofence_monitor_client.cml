@@ -879,7 +879,7 @@ val checked_location3D = Recd [
     Ble (Loc(VarName"AltitudeType")) (IntLit 1)))
 ];
 
-val location3D = checked_location3D;
+(* val location3D = checked_location3D; *)
 
 (*---------------------------------------------------------------------------*)
 (* LineSearchTask message                                                    *)
@@ -1730,8 +1730,11 @@ fun geofence_monitor () =
      val alertHi = stepMon kizone kozone respOpt
  in
    if alertHi
-    then API.send_alert()
-    else API.send_output observed_buffer
+   then API.send_alert()
+   else
+     if Option.isSome respOpt
+     then API.send_output observed_buffer
+     else ()
  end
 
 end (* Geofence_Monitor *)
