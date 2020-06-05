@@ -18,6 +18,46 @@ message("The value of CMAKE_CURRENT_SOURCE_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
 message("The value of CMAKE_CURRENT_BINARY_DIR = ${CMAKE_CURRENT_BINARY_DIR}")
 
 # Taken and modified from tools/seL4/cmake-tool/helpers/external-project-helpers.cmake
+# Function to add a given file to an overlay directory.
+# filename: The preferred name of the file in the overlay
+# file_location: Absolute path to the file we are adding the overlay
+# root_location: The location that the file we are adding will exist in the VM's root filesystem
+# overlay_name: Overlay target name
+function(MyAddFileToOverlayDir filename file_location root_location overlay_name)
+    # Get any existing dependencies when adding the file into the overlay
+    cmake_parse_arguments(PARSE_ARGV 4 ROOTFS_FILE_OVERLAY
+        ""
+        ""
+        "DEPENDS"
+    )
+    if (NOT "${ROOTFS_FILE_OVERLAY_UNPARSED_ARGUMENTS}" STREQUAL "")
+        message(FATAL_ERROR "Unknown arguments to MyAddFileToOverlay")
+    endif()
+    set(rootfs_output_dir "${CMAKE_CURRENT_BINARY_DIR}/${overlay_name}")
+    if(TARGET ${overlay_name})
+        get_target_property(rootfs_output_dir ${overlay_name} ROOTFS_OUTPUT_DIR)
+    else()
+        add_custom_target(${overlay_name})
+        set_property(TARGET ${overlay_name} APPEND PROPERTY ROOTFS_OUTPUT_DIR "${rootfs_output_dir}")
+    endif()
+    # Copy the file into the rootfs output directory at 'root_location'
+    add_custom_command(OUTPUT ${rootfs_output_dir}/${root_location}/${filename}
+        COMMAND ${CMAKE_COMMAND} -E copy "${file_location}" "${rootfs_output_dir}/${root_location}/${filename}"
+        VERBATIM
+        DEPENDS ${file_location} ${ROOTFS_FILE_OVERLAY_DEPENDS}
+    )
+    # Create a semi-unique target name based on the files location
+    set(copy_target_name "copy_${rootfs_output_dir}/${root_location}/${filename}")
+    string(REGEX REPLACE "/" "_" copy_target_name ${copy_target_name})
+    string(MD5 copy_target_name ${copy_target_name})
+    # Create a custom target for the copy command
+    add_custom_target(${copy_target_name} DEPENDS "${rootfs_output_dir}/${root_location}/${filename}")
+    # Add the copy command as a dependency for the overlay directory
+    set_property(TARGET ${overlay_name} APPEND PROPERTY DEPENDS "${copy_target_name}")
+    set_property(TARGET ${overlay_name} APPEND PROPERTY DEPENDS "${file_location}")
+endfunction(MyAddFileToOverlayDir)
+
+# Taken and modified from tools/seL4/cmake-tool/helpers/external-project-helpers.cmake
 # Function for declaring target object files that are produced by an external project. This adds a custom_command
 # that forces a stale check on the object file after the External projects install step.
 # external_proj_target: Target name of the external project
@@ -79,7 +119,7 @@ function(MyAddExternalProjFilesToOverlay external_target external_install_dir ov
     # Iterate adding each file to the overlay
     foreach(file IN LISTS EXTERNAL_PROJ_OVERLAY_FILES)
         get_filename_component(file_name ${file} NAME)
-        AddFileToOverlayDir("${file_name}" ${external_install_dir}/${file} "${overlay_root_location}" ${overlay_target}
+        MyAddFileToOverlayDir("${file_name}" ${external_install_dir}/${file} "${overlay_root_location}" ${overlay_target}
             DEPENDS ${external_target})
     endforeach()
 endfunction(MyAddExternalProjFilesToOverlay)
