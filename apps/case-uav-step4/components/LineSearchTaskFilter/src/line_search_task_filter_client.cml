@@ -1072,6 +1072,7 @@ val emptybuf = Word8Array.array 0 w8zero;
 (*---------------------------------------------------------------------------*)
 
 val filter_in_buffer = Word8Array.array API.filter_inSizeBytes w8zero;
+val filter_out_buffer = Word8Array.array API.filter_inSizeBytes w8zero;
 
 fun clear buffer =
  let val len = Word8Array.length buffer
@@ -1087,10 +1088,22 @@ fun filter_step () =
      val bufLen = API.filter_inSizeBytes
      val string = Word8Array.substring filter_in_buffer 0 bufLen
  in
-    if Contig.wellformed Contig.uxasEnv
+    if Word8Array.sub filter_in_buffer 0 <> Word8.fromInt 0 then (
+      if Contig.wellformed Contig.uxasEnv
             (Contig.uxasOption Contig.fullLineSearchTaskMesg) string
-      then
-        API.send_filter_out filter_in_buffer
+      then (
+        clear filter_out_buffer;
+        Word8Array.copy filter_in_buffer 1 (Word8Array.length filter_in_buffer - 1) filter_out_buffer 0;
+        API.send_filter_out filter_out_buffer
+      )
+      else
+        API.logInfo (String.concat ["\n\n*****************************\n",
+                                    "** Line Search Task Filter **\n",
+                                    "** prevented a malformed   **\n",
+                                    "** message from reaching   **\n",
+                                    "** flight planner.         **\n",
+                                    "*****************************\n\n"])
+    )
     else ()
  end
 

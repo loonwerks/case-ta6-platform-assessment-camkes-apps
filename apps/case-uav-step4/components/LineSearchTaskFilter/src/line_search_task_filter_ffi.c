@@ -75,6 +75,7 @@ void ffiapi_get_filter_in(unsigned char *parameter, long parameterSizeBytes, uns
 extern void line_search_task_out_event_data_send(data_t*);
 
 void ffiapi_send_filter_out(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes) {
+
   checkBufferOverrun(lineSearchTaskFilterDataSizeBytes, parameterSizeBytes);
   clearlineSearchTaskFilterData();
   memcpy(lineSearchTaskFilterData->payload, parameter, parameterSizeBytes);
