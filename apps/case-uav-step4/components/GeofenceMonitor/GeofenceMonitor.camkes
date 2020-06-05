@@ -30,5 +30,8 @@ component GeofenceMonitor {
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
     emits SendEvent alert_out_SendEvent;
     dataport queue_t alert_out_queue;
+
+    emits SendEvent automation_response_out_SendEvent;
+    dataport queue_t automation_response_out_queue;
 }
 

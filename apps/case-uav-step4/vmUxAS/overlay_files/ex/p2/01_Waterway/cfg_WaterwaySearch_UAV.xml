@@ -29,24 +29,25 @@
       /dev/uio0 : receiver from radio operating region port
       /dev/uio1 : receiver from radio line search task port
       /dev/uio2 : receiver from radio automation request port
-      /dev/uio3 : transmitter to waypoint manager automation response port
-      /dev/uio4 : transmitter to response monitor automation response port
-      /dev/uio5 : transmitter to geofence monitor automation response port
-      /dev/uio6 : receiver from autopilot serial server air vehicle state port
+      /dev/uio3 : transmitter to response monitor automation response port
+      /dev/uio4 : transmitter to geofence monitor automation response port
+      /dev/uio5 : receiver from autopilot serial server air vehicle state port
     -->
     <Bridge Type="LmcpObjectNetworkCamkesMultiReceiverBridge">
-        <CAmkESDevice DeviceName="/dev/uio6" />
+        <CAmkESDevice DeviceName="/dev/uio5" />
         <CAmkESDevice DeviceName="/dev/uio0" />
         <CAmkESDevice DeviceName="/dev/uio1" />
         <CAmkESDevice DeviceName="/dev/uio2" />
     </Bridge>
+<!--
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio3">
+        <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
+    </Bridge>
+-->
     <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio3">
         <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
     </Bridge>
     <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio4">
-        <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
-    </Bridge>
-    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio5">
         <SubscribeToMessage MessageType="afrl.cmasi.AutomationResponse"/>
     </Bridge>
 
