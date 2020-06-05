@@ -142,7 +142,7 @@ ExternalProject_Add(
 MyAddExternalProjFilesToOverlay(
     useram
     ${CMAKE_CURRENT_BINARY_DIR}/useram-prefix/src/useram
-    overlay_radio
+    overlay
     "usr/bin"
     FILES
     groundstation
