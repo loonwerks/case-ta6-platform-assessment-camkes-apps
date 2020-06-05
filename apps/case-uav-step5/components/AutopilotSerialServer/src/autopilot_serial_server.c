@@ -227,7 +227,7 @@ int run(void) {
 
 	if (message_size > 0) {
 	  fprintf(stdout, "apss: received mission command message of %zu octets\n", message_size);  fflush(stdout);
-	  hexdump("    ", DUMP_LINE_LENGTH, &data.payload[0], (message_size > MAX_DUMP_SIZE) ? MAX_DUMP_SIZE : message_size);
+	  // hexdump("    ", DUMP_LINE_LENGTH, &data.payload[0], (message_size > MAX_DUMP_SIZE) ? MAX_DUMP_SIZE : message_size);
 	  autopilot_serial_server_write_serial(&data.payload[0], message_size);
 	} else {
 	  fprintf(stdout, "apss: received mission command message, decode errno result %d\n", errno);  fflush(stdout);
