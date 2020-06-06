@@ -164,7 +164,7 @@ ExternalProject_Add(
     GIT_REPOSITORY
     https://github.com/gaj7/am-bin-uav.git
     GIT_TAG
-    master
+    meas
     INSTALL_COMMAND
     ""
     UPDATE_COMMAND
