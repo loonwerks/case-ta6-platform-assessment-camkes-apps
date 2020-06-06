@@ -37,7 +37,7 @@ hvc0:2345:respawn:/sbin/getty -L 9600 hvc0
 ::wait:sh -c "while [ ! -c /dev/uio1 ]; do echo \"Waiting for /dev/uio1\"; sleep 2; done;"
 ::wait:sh -c "while [ ! -c /dev/uio2 ]; do echo \"Waiting for /dev/uio2\"; sleep 2; done;"
 ::wait:sh -c "while [ ! -c /dev/uio3 ]; do echo \"Waiting for /dev/uio3\"; sleep 2; done;"
-::wait:sh -c "while [ ! -c /dev/uio3 ]; do echo \"Waiting for /dev/uio4\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio4 ]; do echo \"Waiting for /dev/uio4\"; sleep 2; done;"
 ::wait:/etc/wait_for_eth0.sh
 
 # Configure for UxAS user
