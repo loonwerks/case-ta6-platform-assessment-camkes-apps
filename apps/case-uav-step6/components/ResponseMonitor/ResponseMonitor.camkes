@@ -1,0 +1,32 @@
+/*
+ * Copyright 2017, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
+ *
+ * Copyright 2020 Collins Aerospace
+ * Modifications made to original
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 3-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD3.txt" for details.
+ */
+
+import <Timer.idl4>;
+
+component ResponseMonitor {
+    include <queue.h>;
+    control;
+
+    // automation_request_in - AADL Event Data Port (in) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    consumes SendEvent automation_request_in_SendEvent;
+    dataport queue_t automation_request_in_queue;
+
+    // automation_response_in - AADL Event Data Port (in) representation
+    // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
+    consumes SendEvent automation_response_in_SendEvent;
+    dataport queue_t automation_response_in_queue;
+
+    uses Timer timeout;
+}
+
