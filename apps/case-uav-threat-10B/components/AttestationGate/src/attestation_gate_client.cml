@@ -72,9 +72,9 @@ fun clear buffer =
 
 fun mk_tid_array () =
   let val project = Word8Array.substring trusted_id_buffer
-  in case (Int.fromString (project 0 3),
-           Int.fromString (project 4 3),
-           Int.fromString (project 8 3))
+  in case (Int.fromString (project 0 4),
+           Int.fromString (project 4 4),
+           Int.fromString (project 8 4))
       of (Some i1, Some i2, Some i3) => Some(Array.fromList[i1,i2,i3])
        | otherwise => None
    end;
@@ -273,20 +273,50 @@ fun att_gate () =
   ; (if c then API.send_AutomationRequest_out automation_request_buffer_out else ())
 *)
 
-    (if a then (
+    (if Word8Array.sub operating_region_buffer 0 <> Word8.fromInt 0 then (
+      if a then (
       Word8Array.copy operating_region_buffer 1 (Word8Array.length operating_region_buffer - 1) operating_region_buffer_out 0;
       API.send_OperatingRegion_out operating_region_buffer_out)
-     else ())
+     else (
+       API.logInfo (String.concat ["\n*****************************************\n",
+                                  "** Attestation Gate:                    **\n",
+                                  "** An Operating Region Message from an  **\n",
+                                  "** untrusted source was intercepted.    **\n",
+                                  "** This could be due to an attack.      **\n",
+                                  "******************************************\n\n"])
+     )
+    )
+    else())
     ;
-    (if b then (
+    (if Word8Array.sub linesearch_task_buffer 0 <> Word8.fromInt 0 then (
+      if b then (
       Word8Array.copy linesearch_task_buffer 1 (Word8Array.length  linesearch_task_buffer - 1) linesearch_task_buffer_out 0;
       API.send_LineSearchTask_out linesearch_task_buffer_out)
-     else ())
+     else (
+       API.logInfo (String.concat ["\n****************************************\n",
+                                  "** Attestation Gate:                   **\n",
+                                  "** A Line Search Task Message from an  **\n",
+                                  "** untrusted source was intercepted.   **\n",
+                                  "** This could be due to an attack.     **\n",
+                                  "*****************************************\n\n"])
+     )
+    )
+    else())
     ;
-    (if c then (
+    (if Word8Array.sub automation_request_buffer 0 <> Word8.fromInt 0 then (
+      if c then (
       Word8Array.copy automation_request_buffer 1 (Word8Array.length automation_request_buffer - 1) automation_request_buffer_out 0;
       API.send_AutomationRequest_out automation_request_buffer_out)
-     else ())
+     else (
+       API.logInfo (String.concat ["\n*****************************************\n",
+                                  "** Attestation Gate:                    **\n",
+                                  "** An Automation Request Message from   **\n",
+                                  "** an untrusted source was intercepted. **\n",
+                                  "** This could be due to an attack.      **\n",
+                                  "******************************************\n\n"])
+     )
+    )
+    else())
   end
 
   fun initialise() = ();
