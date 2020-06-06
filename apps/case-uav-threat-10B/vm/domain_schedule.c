@@ -68,16 +68,17 @@ const dschedule_t ksDomSchedule[] = {
   { .domain =  0, .length = 1 },   // 202 ms : 2 ms seL4, APSS
   { .domain = 10, .length = 1 },   // 204 ms : 2 ms conn10, conn11, conn13
   { .domain =  0, .length = 1 },   // 206 ms : 2 ms seL4, APSS
-  { .domain = 11, .length = 2 },   // 208 ms : 4 ms Geo monitor
-  { .domain =  0, .length = 1 },   // 212 ms : 2 ms seL4, APSS
-  { .domain = 12, .length = 1 },   // 214 ms : 2 ms conn14, conn 17
+  { .domain = 11, .length = 4 },   // 208 ms : 8 ms Geo monitor
   { .domain =  0, .length = 1 },   // 216 ms : 2 ms seL4, APSS
-  { .domain = 13, .length = 4 },   // 218 ms : 8 ms WPM
-  { .domain =  0, .length = 1 },   // 220 ms : 2 ms seL4, APSS
-  { .domain = 13, .length = 4 },   // 222 ms : 8 ms WPM
+  { .domain = 11, .length = 4 },   // 218 ms : 8 ms Geo monitor
+  { .domain =  0, .length = 1 },   // 226 ms : 2 ms seL4, APSS
+  { .domain = 12, .length = 1 },   // 228 ms : 2 ms conn14, conn 17
   { .domain =  0, .length = 1 },   // 230 ms : 2 ms seL4, APSS
-  { .domain = 14, .length = 2 },   // 232 ms : 4 ms response monitor
-  { .domain =  0, .length = 7 },   // 236 ms : 14 ms, seL4, APSS
+  { .domain = 13, .length = 4 },   // 232 ms : 8 ms WPM
+  { .domain =  0, .length = 1 },   // 240 ms : 2 ms seL4, APSS
+  { .domain = 13, .length = 4 },   // 242 ms : 8 ms WPM
+  { .domain =  0, .length = 1 },   // 250 ms : 2 ms seL4, APSS
+  { .domain = 14, .length = 2 },   // 254 ms : 4 ms response monitor
 };
 
 const word_t ksDomScheduleLength = sizeof(ksDomSchedule) / sizeof(dschedule_t);

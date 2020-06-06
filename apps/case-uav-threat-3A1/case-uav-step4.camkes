@@ -61,14 +61,14 @@ component UxAS_VM {
     dataport queue_t air_vehicle_state_in_crossvm_dp;
     maybe consumes SendEvent air_vehicle_state_in_done;
 
+    // dataport queue_t automation_response_out_1_crossvm_dp;
+    // emits SendEvent automation_response_out_1_ready;
+
     dataport queue_t automation_response_out_1_crossvm_dp;
     emits SendEvent automation_response_out_1_ready;
 
     dataport queue_t automation_response_out_2_crossvm_dp;
     emits SendEvent automation_response_out_2_ready;
-
-    dataport queue_t automation_response_out_3_crossvm_dp;
-    emits SendEvent automation_response_out_3_ready;
 
     dataport queue_t uxas_log_out_crossvm_dp;
     emits SendEvent uxas_log_out_ready;
@@ -133,11 +133,12 @@ assembly {
 //	connection seL4GlobalAsynch event_conn_09(from automation_request_filter.automation_request_out_1_SendEvent, to vmUxAS.automation_request_in_done);
 //	connection seL4SharedDataWithCaps data_conn_09(from automation_request_filter.automation_request_out_1_queue, to vmUxAS.automation_request_in_crossvm_dp);
 
-        connection seL4Notification event_conn_10(from vmUxAS.automation_response_out_1_ready, to waypoint_manager.automation_response_in_SendEvent);
-        connection seL4SharedDataWithCaps data_conn_10(from vmUxAS.automation_response_out_1_crossvm_dp, to waypoint_manager.automation_response_in_queue);
+//      Altering connections: remove connection from uxas to wpm and instead send automation response from a gated geo monitor to the wpm
+//         connection seL4Notification event_conn_10(from vmUxAS.automation_response_out_1_ready, to waypoint_manager.automation_response_in_SendEvent);
+//         connection seL4SharedDataWithCaps data_conn_10(from vmUxAS.automation_response_out_1_crossvm_dp, to waypoint_manager.automation_response_in_queue);
 
-        connection seL4Notification event_conn_11(from vmUxAS.automation_response_out_2_ready, to geofence_monitor.automation_response_in_SendEvent);
-        connection seL4SharedDataWithCaps data_conn_11(from vmUxAS.automation_response_out_2_crossvm_dp, to geofence_monitor.automation_response_in_queue);
+        connection seL4Notification event_conn_11(from vmUxAS.automation_response_out_1_ready, to geofence_monitor.automation_response_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_11(from vmUxAS.automation_response_out_1_crossvm_dp, to geofence_monitor.automation_response_in_queue);
 
 //      connection seL4Notification event_conn_12(from automation_request_filter.automation_request_out_2_SendEvent, to response_monitor.automation_request_in_SendEvent);
 //      connection seL4SharedDataWithCaps data_conn_12(from automation_request_filter.automation_request_out_2_queue, to response_monitor.automation_request_in_queue);
@@ -145,11 +146,14 @@ assembly {
         connection seL4Notification event_conn_12(from attestation_gate.automation_request_out_2_SendEvent, to response_monitor.automation_request_in_SendEvent);
         connection seL4SharedDataWithCaps data_conn_12(from attestation_gate.automation_request_out_2_queue, to response_monitor.automation_request_in_queue);
 
-        connection seL4Notification event_conn_13(from vmUxAS.automation_response_out_3_ready, to response_monitor.automation_response_in_SendEvent);
-        connection seL4SharedDataWithCaps data_conn_13(from vmUxAS.automation_response_out_3_crossvm_dp, to response_monitor.automation_response_in_queue);
+        connection seL4Notification event_conn_13(from vmUxAS.automation_response_out_2_ready, to response_monitor.automation_response_in_SendEvent);
+        connection seL4SharedDataWithCaps data_conn_13(from vmUxAS.automation_response_out_2_crossvm_dp, to response_monitor.automation_response_in_queue);
 
 	connection seL4Notification event_conn_14(from geofence_monitor.alert_out_SendEvent, to waypoint_manager.return_home_in_SendEvent);
 	connection seL4SharedDataWithCaps data_conn_14(from geofence_monitor.alert_out_queue, to waypoint_manager.return_home_in_queue);
+
+	connection seL4Notification event_conn_10(from geofence_monitor.automation_response_out_SendEvent, to waypoint_manager.automation_response_in_SendEvent);
+	connection seL4SharedDataWithCaps data_conn_10(from geofence_monitor.automation_response_out_queue, to waypoint_manager.automation_response_in_queue);
 
         connection seL4GlobalAsynch event_conn_15(from autopilot_serial_server.air_vehicle_state_out_1_SendEvent, to vmUxAS.air_vehicle_state_in_done);
         connection seL4SharedDataWithCaps data_conn_15(from autopilot_serial_server.air_vehicle_state_out_1_queue, to vmUxAS.air_vehicle_state_in_crossvm_dp);
@@ -262,7 +266,7 @@ assembly {
         vmUxAS.air_vehicle_state_in_done_domain = 8;
         vmUxAS.automation_response_out_1_crossvm_dp = "W";
         vmUxAS.automation_response_out_2_crossvm_dp = "W";
-        vmUxAS.automation_response_out_3_crossvm_dp = "W";
+//      vmUxAS.automation_response_out_3_crossvm_dp = "W";
         vmUxAS.uxas_log_out_crossvm_dp = "W";
 
         VM_GENERAL_CONFIGURATION_DEF()
