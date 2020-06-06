@@ -102,11 +102,13 @@ void ffiapi_get_observed(unsigned char *parameter, long parameterSizeBytes, unsi
   }
 }
 
+extern void automation_response_out_event_data_send(data_t *data);
+
 void ffiapi_send_output(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes) {
   checkBufferOverrun(geoFenceDataSizeBytes, parameterSizeBytes);
   clearGeoFenceData();
   memcpy(geoFenceData->payload, parameter, parameterSizeBytes);
-  // TODO: output_event_data_send(geoFenceData); <-- not in case-uav-step4
+  automation_response_out_event_data_send(geoFenceData);
 }
 
 extern void alert_out_event_data_send(data_t *data);

@@ -25,7 +25,7 @@
 #include "AutomationResponse.h"
 #include "AddressAttributedMessage.h"
 
-
+#define VEHICLE_ID 400
 #define WINDOW_SIZE 15
 #define WINDOW_OVERLAP 5
 #define INIT_CMD_ID 101
@@ -138,7 +138,7 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
 
   printf("\n%s: received air vehicle state\n", get_instance_name(), numDropped); fflush(stdout);
   
-  if (automationResponse == NULL) {
+  if (automationResponse == NULL && !returnHome) {
     return;
   }
 
@@ -151,11 +151,11 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
 
     if (msg_result == 0) {
 
-      printf("AirVehicleState waypoint = %llu, currentWaypoint = %llu\n", airVehicleState->super.currentwaypoint, currentWaypoint);
+//      printf("AirVehicleState waypoint = %llu, currentWaypoint = %llu\n", airVehicleState->super.currentwaypoint, currentWaypoint);
       fflush(stdout);
 //      hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
-      if (airVehicleState->super.currentwaypoint == 0) {
+      if (airVehicleState->super.currentwaypoint == 0 && !returnHome) {
         lmcp_free_AirVehicleState(airVehicleState, 1);
         return;
       }
@@ -283,25 +283,27 @@ void sendMissionCommand() {
 
     // Don't do anything if current waypoint is 0.
     // Something is wrong.  This method should not have been called.
-    if (currentWaypoint == 0) {
-        printf("%s: sendMissionCommand(): currentWaypoint == 0\n", get_instance_name()); fflush(stdout);
-        return;
-    }
+//    if (currentWaypoint == 0) {
+//        printf("%s: sendMissionCommand(): currentWaypoint == 0\n", get_instance_name()); fflush(stdout);
+//        return;
+//    }
   
-    // Don't do anything until an AutomationRequest is recevied
-    if (automationResponse == NULL) {
-        printf("%s: sendMissionCommand(): automationResponse == NULL\n", get_instance_name()); fflush(stdout);
-        return;
-    }
+    // Don't do anything until an AutomationResponse is recevied
+//    if (automationResponse == NULL) {
+//        printf("%s: sendMissionCommand(): automationResponse == NULL\n", get_instance_name()); fflush(stdout);
+//        return;
+//    }
 
 //    printf("%s: sendMissionCommand()\n", get_instance_name()); fflush(stdout);
 
     // Construct mission command message
     MissionCommand * missionCommand = NULL;
     lmcp_init_MissionCommand(&missionCommand);
-    missionCommand->super = automationResponse->missioncommandlist[0]->super;
+//    missionCommand->super = automationResponse->missioncommandlist[0]->super;
+    missionCommand->super.vehicleid = VEHICLE_ID;
     missionCommand->super.commandid = currentCommand++;
     missionCommand->super.status = 1;
+    missionCommand->super.vehicleactionlist_ai.length = 0;
     missionCommand->waypointlist_ai.length = WINDOW_SIZE;
     missionCommand->waypointlist = malloc(sizeof(Waypoint*) * WINDOW_SIZE);
 
@@ -360,7 +362,7 @@ void run_poll(void) {
             returnHome = true;
         }
         
-        if (automationResponse != NULL) {
+        if (returnHome || automationResponse != NULL) {
           dataReceived = air_vehicle_state_in_event_data_poll(&numDropped, &data);
           if (dataReceived) {
               air_vehicle_state_in_event_data_receive_handler(numDropped, &data);
