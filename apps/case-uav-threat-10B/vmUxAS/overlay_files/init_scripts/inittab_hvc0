@@ -37,7 +37,6 @@ null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 ::wait:sh -c "while [ ! -c /dev/uio4 ]; do echo \"Waiting for /dev/uio4\"; sleep 2; done;"
 ::wait:sh -c "while [ ! -c /dev/uio5 ]; do echo \"Waiting for /dev/uio5\"; sleep 2; done;"
 ::wait:sh -c "while [ ! -c /dev/uio6 ]; do echo \"Waiting for /dev/uio6\"; sleep 2; done;"
-::wait:sh -c "while [ ! -c /dev/uio7 ]; do echo \"Waiting for /dev/uio7\"; sleep 2; done;"
 
 # Configure for UxAS user
 ::wait:adduser uxas -H -D
@@ -49,7 +48,6 @@ null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 ::wait:chgrp uxas /dev/uio4
 ::wait:chgrp uxas /dev/uio5
 ::wait:chgrp uxas /dev/uio6
-::wait:chgrp uxas /dev/uio7
 ::wait:chmod g+rw /dev/uio0
 ::wait:chmod g+rw /dev/uio1
 ::wait:chmod g+rw /dev/uio2
@@ -57,7 +55,6 @@ null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 ::wait:chmod g+rw /dev/uio4
 ::wait:chmod g+rw /dev/uio5
 ::wait:chmod g+rw /dev/uio6
-::wait:chmod g+rw /dev/uio7
 
 # Run UxAS
 ::respawn:su uxas -c "mkdir -p /home/uxas/ex/p2/01_Waterway/RUNDIR && cd /home/uxas/ex/p2/01_Waterway/RUNDIR && /home/uxas/build/uxas -cfgPath /home/uxas/ex/p2/01_Waterway/cfg_WaterwaySearch_UAV.xml"

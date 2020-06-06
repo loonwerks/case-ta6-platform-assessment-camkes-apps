@@ -1611,6 +1611,7 @@ fun dfaTransition  obsList state =
 (* observation is just set to False, without attempting the computations.    *)
 (*---------------------------------------------------------------------------*)
 
+(*
 fun stepDFA kizone kozone responseOpt =
  let val v0 = Option.isSome responseOpt
      val v1 = v0 andalso
@@ -1623,6 +1624,34 @@ fun stepDFA kizone kozone responseOpt =
               andalso
                not(duplicates_in_mission
                   (get_mission_command(Option.valOf responseOpt)))
+     val obsVals = [(v0,"obsVar_1"),(v1,"obsVar_2"),(v2,"obsVar_3")]
+     val () = (dfaState := dfaTransition obsVals (!dfaState))
+ in
+   goodState (!dfaState)
+end
+*)
+
+val keep_in_violated = Ref False;
+val keep_out_violated = Ref False;
+val no_duplicates = Ref False;
+
+fun stepDFA kizone kozone responseOpt =
+ let val v0 = Option.isSome responseOpt
+     val v1 = v0 andalso
+              waypoints_in_zone
+                  (get_mission_command(Option.valOf responseOpt)) kizone
+
+    val v2A = v0
+              andalso waypoints_not_in_zone
+                       (get_mission_command(Option.valOf responseOpt)) kozone
+     val v2B = v0 andalso
+               not(duplicates_in_mission
+                  (get_mission_command(Option.valOf responseOpt)))
+     val _ = (keep_in_violated := not v1)
+     val _ = (keep_out_violated := not v2A)
+     val _ = (no_duplicates := not v2B)
+
+     val v2 = v0 andalso v2A andalso v2B
      val obsVals = [(v0,"obsVar_1"),(v1,"obsVar_2"),(v2,"obsVar_3")]
      val () = (dfaState := dfaTransition obsVals (!dfaState))
  in
@@ -1721,6 +1750,7 @@ fun mk_automation_response_event () =
    parse_buf (Contig.uxasOption Contig.fullAutomationResponseMesg)
              Geofence_Types.mk_AR_event observed_buffer;
 
+val out_buffer = Word8Array.array API.outputSizeBytes w8zero;
 
 fun geofence_monitor () =
  let val ()      = fill_buffers()
@@ -1729,12 +1759,56 @@ fun geofence_monitor () =
      val respOpt = mk_automation_response_event()
      val alertHi = stepMon kizone kozone respOpt
  in
+  if Word8Array.sub observed_buffer 0 <> Word8.fromInt 0 then (
    if alertHi
-   then API.send_alert()
-   else
+   then (
+     if !keep_in_violated then
+      API.logInfo (String.concat ["\n********************************************\n",
+                                  "** Geofence Monitor:                      **\n",
+                                  "** UxAS generated a flight plan that is   **\n",
+                                  "** not contained in the specified keep-in **\n",
+                                  "** zone. This is likely due to an attack. **\n",
+                                  "** Aborting mission and returning home.   **\n",
+                                  "********************************************\n\n"])
+     else ();
+     if !keep_out_violated then
+      API.logInfo (String.concat ["\n**********************************************\n",
+                                  "** Geofence Monitor:                        **\n",
+                                  "** UxAS generated a flight plan that passes **\n",
+                                  "** through a specified keep-out zone. This  **\n",
+                                  "** is likely due to an attack.              **\n",
+                                  "** Aborting mission and returning home.     **\n",
+                                  "**********************************************\n\n"])
+     else ();
+     if !no_duplicates then
+      API.logInfo (String.concat ["\n******************************************\n",
+                                  "** Geofence Monitor:                    **\n",
+                                  "** UxAS generated a flight plan with a  **\n",
+                                  "** suspicious sequence of waypoints!    **\n",
+                                  "** This is likely due to an attack.     **\n",
+                                  "** Aborting mission and returning home. **\n",
+                                  "******************************************\n\n"]) 
+     else();                     
+
+    keep_in_violated := False;
+    keep_out_violated := False;
+    no_duplicates := False;
+    
+     API.send_alert()
+     
+   )
+   else 
      if Option.isSome respOpt
-     then API.send_output observed_buffer
+     then (
+
+       clear out_buffer;
+        Word8Array.copy observed_buffer 1 (Word8Array.length observed_buffer - 1) out_buffer 0;
+       API.send_output out_buffer
+    )
      else ()
+     
+  )
+  else()
  end
 
 end (* Geofence_Monitor *)
