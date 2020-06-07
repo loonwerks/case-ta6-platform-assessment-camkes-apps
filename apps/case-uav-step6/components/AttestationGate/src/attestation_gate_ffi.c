@@ -78,18 +78,28 @@ void clearattestationIds() {
 
 extern bool trusted_ids_in_event_data_poll(am_counter_t *, am_data_t *);
 
+unsigned char trusted_ids[12] = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
+
 void ffiapi_get_trusted_ids(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes) {
-  am_counter_t numRcvd = 0;
+  am_counter_t numDropped = 0;
 
   checkBufferOverrun(outputSizeBytes, attestationIdsSizeBytes);
   clearattestationIds();
 
-  output[0] = trusted_ids_in_event_data_poll(&numRcvd, attestationIds);
-  if (output[0]) {
-    memcpy(output+1, attestationIds->payload, attestationIdsSizeBytes);
+//  output[0] = trusted_ids_in_event_data_poll(&numRcvd, attestationIds);
+  bool dataReceived = trusted_ids_in_event_data_poll(&numDropped, output);
+
+//printf("output[0] = %u\ntrusted_ids payload:\n", output[0]);
+//hexdump_raw(24, attestationIds->payload, attestationIdsSizeBytes);
+
+//  if (output[0]) {
+  if (dataReceived) {
+    memcpy(trusted_ids, output, attestationIdsSizeBytes);
+  } else {
+    memcpy(output, trusted_ids, attestationIdsSizeBytes);
   }
-  if (numRcvd > 0) {
-    sprintf(attestationMsgBuffer, "\n\treceived Trusted Ids (%ld)", numRcvd);
+  if (numDropped > 0) {
+    sprintf(attestationMsgBuffer, "\n\treceived Trusted Ids (num dropped = %ld)", numDropped);
     api_logInfo(attestationMsgBuffer);
   }
   
