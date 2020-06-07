@@ -19,11 +19,10 @@ char attestationMsgBuffer[256];
 
 am_data_t _attestationIds;
 am_data_t *attestationIds = &_attestationIds;
-size_t attestationIdsSizeBytes = sizeof(attestationIds->payload);
 
 data_t _attestationData;
 data_t *attestationData = &_attestationData;
-size_t attestationDataSizeBytes = sizeof(attestationData->payload);
+const size_t attestationDataSizeBytes = sizeof(attestationData->payload);
 
 /**
  * API for Logging
@@ -55,13 +54,13 @@ void dumpBuffer(size_t numBytes, uint8_t* buffer) {
 } 
 
 void clearattestationData() {
-  for (int i = 0 ; i < attestationDataSizeBytes ; ++i) {
+  for (int i = 0 ; i < sizeof(attestationIds->payload) ; ++i) {
     attestationData->payload[i] = 0;
   }
 }
 
 void clearattestationIds() {
-  for (int i = 0 ; i < attestationIdsSizeBytes ; ++i) {
+  for (int i = 0 ; i < sizeof(attestationIds->payload) ; ++i) {
     attestationIds->payload[i] = 0;
   }
 }
@@ -78,31 +77,29 @@ void clearattestationIds() {
 
 extern bool trusted_ids_in_event_data_poll(am_counter_t *, am_data_t *);
 
-unsigned char trusted_ids[12] = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
+// Cache for received trusted ids
+// Initialize to all '0' characters to indicate no trusted ids
+unsigned char trusted_ids[sizeof(attestationIds->payload)] = { '0' };
 
 void ffiapi_get_trusted_ids(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes) {
   am_counter_t numDropped = 0;
 
-  checkBufferOverrun(outputSizeBytes, attestationIdsSizeBytes);
+  checkBufferOverrun(outputSizeBytes, sizeof(attestationIds->payload));
   clearattestationIds();
 
-//  output[0] = trusted_ids_in_event_data_poll(&numRcvd, attestationIds);
-  bool dataReceived = trusted_ids_in_event_data_poll(&numDropped, output);
+  bool dataReceived = trusted_ids_in_event_data_poll(&numDropped, (am_data_t *) output);
 
-//printf("output[0] = %u\ntrusted_ids payload:\n", output[0]);
-//hexdump_raw(24, attestationIds->payload, attestationIdsSizeBytes);
-
-//  if (output[0]) {
   if (dataReceived) {
-    for (size_t index = 0; index < attestationIdsSizeBytes; ++index) {
+    // New set of attestation ids received, map illegal characters to '0' and store in cache
+    for (size_t index = 0; index < sizeof(attestationIds->payload); ++index) {
         if (!('0' <= output[index] && output[index] <= '9')) {
             output[index] = '0';
         }
         trusted_ids[index] = output[index];
     }
-    // memcpy(trusted_ids, output, attestationIdsSizeBytes);
   } else {
-    memcpy(output, trusted_ids, attestationIdsSizeBytes);
+    // No new set received, return the cache contents to the caller
+    memcpy(output, trusted_ids, sizeof(attestationIds->payload));
   }
   if (numDropped > 0) {
     sprintf(attestationMsgBuffer, "\n\treceived Trusted Ids (num dropped = %ld)", numDropped);
