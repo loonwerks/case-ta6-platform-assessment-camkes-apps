@@ -94,7 +94,13 @@ void ffiapi_get_trusted_ids(unsigned char *parameter, long parameterSizeBytes, u
 
 //  if (output[0]) {
   if (dataReceived) {
-    memcpy(trusted_ids, output, attestationIdsSizeBytes);
+    for (size_t index = 0; index < attestationIdsSizeBytes; ++index) {
+        if (!('0' <= output[index] && output[index] <= '9')) {
+            output[index] = '0';
+        }
+        trusted_ids[index] = output[index];
+    }
+    // memcpy(trusted_ids, output, attestationIdsSizeBytes);
   } else {
     memcpy(output, trusted_ids, attestationIdsSizeBytes);
   }
