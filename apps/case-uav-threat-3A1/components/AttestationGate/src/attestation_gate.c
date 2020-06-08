@@ -8,6 +8,8 @@
 #include <string.h>
 
 #include <counter.h>
+#include <am_data.h>
+#include <am_queue.h>
 #include <data.h>
 #include <queue.h>
 
@@ -76,6 +78,22 @@ bool automation_request_in_event_data_poll(counter_t *numDropped, data_t *data) 
 }
 
 
+//------------------------------------------------------------------------------
+// User specified input data receive handler for AADL Input Event Data Port (in) named
+// "p1_in".
+void trusted_ids_in_event_data_receive(am_counter_t numDropped, am_data_t *data) {
+    printf("%s: received trusted id list: numDropped: %" PRIcounter "\n", get_instance_name(), numDropped); fflush(stdout);
+    hexdump("    ", 32, data->payload, sizeof(data->payload));
+}
+
+am_recv_queue_t trustedIdsInRecvQueue;
+
+// Assumption: only one thread is calling this and/or reading p1_in_recv_counter.
+bool trusted_ids_in_event_data_poll(am_counter_t *numDropped, am_data_t *data) {
+    return am_queue_dequeue(&trustedIdsInRecvQueue, numDropped, data);
+}
+
+
 void done_emit_underlying(void) WEAK;
 static void done_emit(void) {
   /* If the interface is not connected, the 'underlying' function will
@@ -110,7 +128,9 @@ void automation_request_out_event_data_send(data_t *data) {
 
 
 void run_poll(void) {
+    am_counter_t amNumDropped;
     counter_t numDropped;
+    am_data_t am_data;
     data_t data;
 
     while (true) {
@@ -130,6 +150,11 @@ void run_poll(void) {
             automation_request_in_event_data_receive(numDropped, &data);
         }
 
+        dataReceived = trusted_ids_in_event_data_poll(&amNumDropped, &am_data);
+        if (dataReceived) {
+            trusted_ids_in_event_data_receive(amNumDropped, &am_data);
+        }
+
         seL4_Yield();
     }
 
@@ -140,6 +165,7 @@ void post_init(void) {
     recv_queue_init(&operatingRegionInRecvQueue, operating_region_in_queue);
     recv_queue_init(&lineSearchTaskInRecvQueue, line_search_task_in_queue);
     recv_queue_init(&automationRequestInRecvQueue, automation_request_in_queue);
+    am_recv_queue_init(&trustedIdsInRecvQueue, trusted_ids_in_queue);
     queue_init(operating_region_out_queue);
     queue_init(line_search_task_out_queue);
     queue_init(automation_request_out_1_queue);

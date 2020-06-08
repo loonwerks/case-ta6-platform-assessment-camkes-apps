@@ -136,7 +136,7 @@ bool FillWindow(  Waypoint ** ws,
 // "p1_in".
 void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_t *data) {
 
-  printf("\n%s: received air vehicle state\n", get_instance_name(), numDropped); fflush(stdout);
+//  printf("\n%s: received air vehicle state\n", get_instance_name()); fflush(stdout);
   
   if (automationResponse == NULL && !returnHome) {
     return;
@@ -152,7 +152,7 @@ void air_vehicle_state_in_event_data_receive_handler(counter_t numDropped, data_
     if (msg_result == 0) {
 
 //      printf("AirVehicleState waypoint = %llu, currentWaypoint = %llu\n", airVehicleState->super.currentwaypoint, currentWaypoint);
-      fflush(stdout);
+//      fflush(stdout);
 //      hexdump_raw(24, data->payload, compute_addr_attr_lmcp_message_size(data->payload, sizeof(data->payload)));
 
       if (airVehicleState->super.currentwaypoint == 0 && !returnHome) {

@@ -8,7 +8,7 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
-project(case-uav-step4 C)
+project(case-uav-step6 C)
 
 includeGlobalComponents()
 find_package(camkes-vm REQUIRED)
@@ -20,6 +20,7 @@ camkes_arm_vm_import_project()
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/CMASI)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/hexdump)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/camkes_log_queue)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/am_queue)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/queue)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/AutopilotSerialServer)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/components/WaypointManager)
@@ -34,7 +35,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/vmUxAS)
 
 CAmkESAddImportPath(exynos5422)
 
-DeclareCAmkESRootserver(case-uav-step4.camkes)
+DeclareCAmkESRootserver(case-uav-step6.camkes)
 
 # Add linux kernel image to file server
 AddToFileServer("linux" "${CAMKES_VM_IMAGES_DIR}/${KernelARMPlatform}/linux")

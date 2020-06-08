@@ -4,6 +4,8 @@
 #include <string.h>
 
 #include <counter.h>
+#include <am_data.h>
+#include <am_queue.h>
 #include <data.h>
 #include <queue.h>
 
@@ -14,9 +16,13 @@
 
 
 char attestationMsgBuffer[256];
+
+am_data_t _attestationIds;
+am_data_t *attestationIds = &_attestationIds;
+
 data_t _attestationData;
 data_t *attestationData = &_attestationData;
-size_t attestationDataSizeBytes = sizeof(attestationData->payload);
+const size_t attestationDataSizeBytes = sizeof(attestationData->payload);
 
 /**
  * API for Logging
@@ -48,19 +54,58 @@ void dumpBuffer(size_t numBytes, uint8_t* buffer) {
 } 
 
 void clearattestationData() {
-  for (int i = 0 ; i < attestationDataSizeBytes ; ++i) {
+  for (int i = 0 ; i < sizeof(attestationIds->payload) ; ++i) {
     attestationData->payload[i] = 0;
   }
 }
 
-uint8_t trusted_ids_out[] = {0x30, 0x35, 0x30, 0x30, 0x30, 0x34, 0x30, 0x30, 0x30, 0x36, 0x30, 0x30};
-size_t trusted_ids_outSizeBytes = sizeof(trusted_ids_out);
+void clearattestationIds() {
+  for (int i = 0 ; i < sizeof(attestationIds->payload) ; ++i) {
+    attestationIds->payload[i] = 0;
+  }
+}
+
+// uint8_t trusted_ids_out[] = {0x30, 0x35, 0x30, 0x30, 0x30, 0x34, 0x30, 0x30, 0x30, 0x36, 0x30, 0x30};
+// size_t trusted_ids_outSizeBytes = sizeof(trusted_ids_out);
+// 
+// void ffiapi_get_trusted_ids(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes) {
+//   checkBufferOverrun(outputSizeBytes, trusted_ids_outSizeBytes);
+//   for (size_t i = 0 ; i < trusted_ids_outSizeBytes ; ++i) {
+//     output[i] = trusted_ids_out[i];
+//   }
+// }
+
+extern bool trusted_ids_in_event_data_poll(am_counter_t *, am_data_t *);
+
+// Cache for received trusted ids
+// Initialize to all '0' characters to indicate no trusted ids
+unsigned char trusted_ids[sizeof(attestationIds->payload)] = { '0' };
 
 void ffiapi_get_trusted_ids(unsigned char *parameter, long parameterSizeBytes, unsigned char *output, long outputSizeBytes) {
-  checkBufferOverrun(outputSizeBytes, trusted_ids_outSizeBytes);
-  for (size_t i = 0 ; i < trusted_ids_outSizeBytes ; ++i) {
-    output[i] = trusted_ids_out[i];
+  am_counter_t numDropped = 0;
+
+  checkBufferOverrun(outputSizeBytes, sizeof(attestationIds->payload));
+  clearattestationIds();
+
+  bool dataReceived = trusted_ids_in_event_data_poll(&numDropped, (am_data_t *) output);
+
+  if (dataReceived) {
+    // New set of attestation ids received, map illegal characters to '0' and store in cache
+    for (size_t index = 0; index < sizeof(attestationIds->payload); ++index) {
+        if (!('0' <= output[index] && output[index] <= '9')) {
+            output[index] = '0';
+        }
+        trusted_ids[index] = output[index];
+    }
+  } else {
+    // No new set received, return the cache contents to the caller
+    memcpy(output, trusted_ids, sizeof(attestationIds->payload));
   }
+  if (numDropped > 0) {
+    sprintf(attestationMsgBuffer, "\n\treceived Trusted Ids (num dropped = %ld)", numDropped);
+    api_logInfo(attestationMsgBuffer);
+  }
+  
 }
 
 extern bool automation_request_in_event_data_poll(counter_t *, data_t *);

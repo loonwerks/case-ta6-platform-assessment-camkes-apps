@@ -30,9 +30,12 @@
 //
 //    dataport queue_t uxas_log_in_crossvm_dp;
 //    maybe consumes SendEvent uxas_log_in_done;
+//
+//    dataport queue_t attestation_id_list_out_crossvm_dp;
+//    emits SendEvent attestation_id_list_out_ready;
 
 
-#define NUM_CONNECTIONS 4
+#define NUM_CONNECTIONS 5
 static struct camkes_crossvm_connection connections[NUM_CONNECTIONS];
 
 // these are defined in the dataport's glue code
@@ -47,6 +50,9 @@ void automation_request_out_ready_emit_underlying(void);
 
 extern dataport_caps_handle_t uxas_log_in_crossvm_dp_handle;
 seL4_Word uxas_log_in_done_notification_badge(void);
+
+extern dataport_caps_handle_t attestation_id_list_out_crossvm_dp_handle;
+void attestation_id_list_out_ready_emit_underlying(void); 
 
 
 static int consume_callback(vm_t *vm, void *cookie)
@@ -80,6 +86,12 @@ void init_cross_vm_connections(vm_t *vm, void *cookie)
         .handle = &uxas_log_in_crossvm_dp_handle,
         .emit_fn = NULL,
         .consume_badge = uxas_log_in_done_notification_badge()
+    };
+
+    connections[4] = (struct camkes_crossvm_connection) {
+        .handle = &attestation_id_list_out_crossvm_dp_handle,
+        .emit_fn = attestation_id_list_out_ready_emit_underlying,
+        .consume_badge = -1
     };
 
     for (int i = 0; i < NUM_CONNECTIONS; i++) {

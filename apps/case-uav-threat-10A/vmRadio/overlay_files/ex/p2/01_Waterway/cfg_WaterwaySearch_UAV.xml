@@ -9,7 +9,15 @@
             UxAS Ground Station 192.168.2.5
             UxAS Air Vehicle 192.168.2.7
     --->
-    <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://0.0.0.0:5556" Server="TRUE">
+    <!--
+    <Bridge Type="LmcpObjectNetworkTcpToCamkesBridge" TcpAddress="tcp://0.0.0.0:5556" Server="TRUE" DeviceName="/dev/uio0">
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.LineSearchTask"/>
+        <SubscribeToExternalMessage MessageType="afrl.cmasi.AutomationRequest"/>
+    </Bridge>
+    -->
+
+    <Bridge Type="LmcpObjectNetworkTcpBridge" TcpAddress="tcp://0.0.0.0:5556" Server="TRUE" ConsiderSelfGenerated="FALSE">
         <SubscribeToExternalMessage MessageType="afrl.cmasi.OperatingRegion"/>
         <SubscribeToExternalMessage MessageType="afrl.cmasi.LineSearchTask"/>
         <SubscribeToExternalMessage MessageType="afrl.cmasi.AutomationRequest"/>
@@ -20,13 +28,13 @@
       /dev/uio1 : transmitter to UxAS line search task port
       /dev/uio2 : transmitter to UxAS automation request port
     -->
-    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio0">
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio0" ForwardNonLocal="TRUE">
         <SubscribeToMessage MessageType="afrl.cmasi.OperatingRegion"/>
     </Bridge>
-    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio1">
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio1" ForwardNonLocal="TRUE">
         <SubscribeToMessage MessageType="afrl.cmasi.LineSearchTask"/>
     </Bridge>
-    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio2">
+    <Bridge Type="LmcpObjectNetworkCamkesTransmitterBridge" DeviceName="/dev/uio2" ForwardNonLocal="TRUE">
         <SubscribeToMessage MessageType="afrl.cmasi.AutomationRequest"/>
     </Bridge>
 

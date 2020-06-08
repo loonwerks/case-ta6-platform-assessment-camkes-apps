@@ -1760,43 +1760,44 @@ fun geofence_monitor () =
      val alertHi = stepMon kizone kozone respOpt
  in
   if Word8Array.sub observed_buffer 0 <> Word8.fromInt 0 then (
-   if alertHi
-   then (
-     if !keep_in_violated then
-      API.logInfo (String.concat ["\n********************************************\n",
+    if alertHi
+    then (
+      if !keep_in_violated then
+        API.logInfo (String.concat ["\n********************************************\n",
                                   "** Geofence Monitor:                      **\n",
                                   "** UxAS generated a flight plan that is   **\n",
                                   "** not contained in the specified keep-in **\n",
                                   "** zone. This is likely due to an attack. **\n",
                                   "** Aborting mission and returning home.   **\n",
                                   "********************************************\n\n"])
-     else ();
-     if !keep_out_violated then
-      API.logInfo (String.concat ["\n**********************************************\n",
+      else
+        if !keep_out_violated then
+          API.logInfo (String.concat ["\n**********************************************\n",
                                   "** Geofence Monitor:                        **\n",
                                   "** UxAS generated a flight plan that passes **\n",
                                   "** through a specified keep-out zone. This  **\n",
                                   "** is likely due to an attack.              **\n",
                                   "** Aborting mission and returning home.     **\n",
                                   "**********************************************\n\n"])
-     else ();
-     if !no_duplicates then
-      API.logInfo (String.concat ["\n******************************************\n",
+        else
+          if !no_duplicates then
+            API.logInfo (String.concat ["\n******************************************\n",
                                   "** Geofence Monitor:                    **\n",
                                   "** UxAS generated a flight plan with a  **\n",
                                   "** suspicious sequence of waypoints!    **\n",
                                   "** This is likely due to an attack.     **\n",
                                   "** Aborting mission and returning home. **\n",
                                   "******************************************\n\n"]) 
-     else();                     
+          else()
+      ;                     
 
-    keep_in_violated := False;
-    keep_out_violated := False;
-    no_duplicates := False;
+      keep_in_violated := False;
+      keep_out_violated := False;
+      no_duplicates := False;
     
-     API.send_alert()
+      API.send_alert()
      
-   )
+    )
    else 
      if Option.isSome respOpt
      then (

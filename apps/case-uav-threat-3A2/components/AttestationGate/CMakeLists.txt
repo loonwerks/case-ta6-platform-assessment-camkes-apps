@@ -22,5 +22,6 @@ DeclareCAmkESComponent(AttestationGate
     src/attestation_gate.S
     LIBS
     hexdump
+    am_queue
     queue
 )

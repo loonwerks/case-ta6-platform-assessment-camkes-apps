@@ -160,6 +160,30 @@ function(MyAddExternalProjFilesToOverlay external_target external_install_dir ov
 endfunction(MyAddExternalProjFilesToOverlay)
 
 ExternalProject_Add(
+    useram
+    GIT_REPOSITORY
+    https://github.com/gaj7/am-bin-uav.git
+    GIT_TAG
+    meas
+    INSTALL_COMMAND
+    ""
+    UPDATE_COMMAND
+    ""
+    CONFIGURE_COMMAND
+    ""
+    BUILD_COMMAND
+    ""
+)
+MyAddExternalProjFilesToOverlay(
+    useram
+    ${CMAKE_CURRENT_BINARY_DIR}/useram-prefix/src/useram
+    overlay_radio
+    "usr/bin"
+    FILES
+    uav
+)
+
+ExternalProject_Add(
     camkes_log_relay
     SOURCE_DIR
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/camkes_log_relay
@@ -270,7 +294,7 @@ CAmkESAddImportPath(${CMAKE_CURRENT_SOURCE_DIR}/${KernelARMPlatform}/)
 ExtendCAmkESComponentInstance(Radio_VM vmRadio SOURCES src/cross_vm_connections_vmRadio.c)
 
 # Link the vm component against the queue library.
-DeclareCAmkESComponent(Radio_VM LIBS queue)
+DeclareCAmkESComponent(Radio_VM LIBS queue am_queue)
 
 CAmkESAddCPPInclude(${CAMKES_ARM_VM_DIR}/components/VM)
 

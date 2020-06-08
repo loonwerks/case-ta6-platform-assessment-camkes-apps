@@ -12,14 +12,14 @@
  */
 
 component AttestationGate {
+    include <am_queue.h>;
     include <queue.h>;
     control;
 
     // trusted_ids_in - AADL Event Data Port (in) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent
-//    consumes SendEvent trusted_ids_in_SendEvent;
-//    dataport queue_t trusted_ids_in_queue;
-
+    consumes SendEvent trusted_ids_in_SendEvent;
+    dataport am_queue_t trusted_ids_in_queue;
 
     // operating_region_in - AADL Event Data Port (in) representation
     // NOTE: If we only need polling style receivers, we can get rid of the SendEvent

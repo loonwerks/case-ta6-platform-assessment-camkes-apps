@@ -37,6 +37,7 @@ hvc0:2345:respawn:/sbin/getty -L 9600 hvc0
 ::wait:sh -c "while [ ! -c /dev/uio1 ]; do echo \"Waiting for /dev/uio1\"; sleep 2; done;"
 ::wait:sh -c "while [ ! -c /dev/uio2 ]; do echo \"Waiting for /dev/uio2\"; sleep 2; done;"
 ::wait:sh -c "while [ ! -c /dev/uio3 ]; do echo \"Waiting for /dev/uio3\"; sleep 2; done;"
+::wait:sh -c "while [ ! -c /dev/uio4 ]; do echo \"Waiting for /dev/uio4\"; sleep 2; done;"
 ::wait:/etc/wait_for_eth0.sh
 
 # Configure for UxAS user
@@ -46,10 +47,15 @@ hvc0:2345:respawn:/sbin/getty -L 9600 hvc0
 ::wait:chgrp uxas /dev/uio1
 ::wait:chgrp uxas /dev/uio2
 ::wait:chgrp uxas /dev/uio3
+::wait:chgrp uxas /dev/uio4
 ::wait:chmod g+rw /dev/uio0
 ::wait:chmod g+rw /dev/uio1
 ::wait:chmod g+rw /dev/uio2
 ::wait:chmod g+rw /dev/uio3
+::wait:chmod g+rw /dev/uio4
+
+# Run AM
+::respawn:uav
 
 # Run UxAS
 # ::respawn:su uxas -c "/usr/bin/camkes_log_relay /dev/uio3 192.168.2.2:5578"

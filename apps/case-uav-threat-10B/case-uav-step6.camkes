@@ -29,6 +29,7 @@ import "components/GeofenceMonitor/GeofenceMonitor.camkes";
 
 component Radio_VM {
     VM_INIT_DEF()
+    include <am_queue.h>;
     include <queue.h>;
 
     dataport queue_t operating_region_out_crossvm_dp;
@@ -39,6 +40,9 @@ component Radio_VM {
 
     dataport queue_t automation_request_out_crossvm_dp;
     emits SendEvent automation_request_out_ready;
+
+    dataport am_queue_t attestation_id_list_out_crossvm_dp;
+    emits SendEvent attestation_id_list_out_ready;
 
     dataport queue_t uxas_log_in_crossvm_dp;
     maybe consumes SendEvent uxas_log_in_done;
@@ -108,6 +112,9 @@ assembly {
 
         connection seL4Notification event_conn_03(from vmRadio.automation_request_out_ready, to attestation_gate.automation_request_in_SendEvent);
         connection seL4SharedDataWithCaps data_conn_03(from vmRadio.automation_request_out_crossvm_dp, to attestation_gate.automation_request_in_queue);
+
+        connection seL4GlobalAsynch event_conn_07(from vmRadio.attestation_id_list_out_ready, to attestation_gate.trusted_ids_in_SendEvent);
+        connection seL4SharedDataWithCaps cross_vm_conn_07(from vmRadio.attestation_id_list_out_crossvm_dp, to attestation_gate.trusted_ids_in_queue);
 
 //	connection seL4Notification event_conn_04(from attestation_gate.operating_region_out_SendEvent, to operating_region_filter.operating_region_in_SendEvent);
 //	connection seL4SharedDataWithCaps data_conn_04(from attestation_gate.operating_region_out_queue, to operating_region_filter.operating_region_in_queue);
@@ -179,7 +186,7 @@ assembly {
         data_conn_04.size = 32768;
         data_conn_05.size = 32768;
         data_conn_06.size = 32768;
-//      data_conn_07.size = 32768;
+        data_conn_07.size = 4096;
         data_conn_08.size = 32768;
 //	data_conn_09.size = 32768;
 	data_conn_10.size = 32768;
@@ -213,6 +220,8 @@ assembly {
         attestation_gate.line_search_task_in_SendEvent_domain = 3;
 	attestation_gate.automation_request_in_queue_access = "R";
         attestation_gate.automation_request_in_SendEvent_domain = 4;
+        attestation_gate.trusted_ids_in_queue_access = "R";
+        attestation_gate.trusted_ids_in_SendEvent_domain = 4;
         attestation_gate.operating_region_out_queue_access = "W";
         attestation_gate.line_search_task_out_queue_access = "W";
         attestation_gate.automation_request_out_queue_access = "W";
@@ -254,6 +263,7 @@ assembly {
         vmRadio.operating_region_out_crossvm_dp = "W";
         vmRadio.line_search_task_out_crossvm_dp = "W";
         vmRadio.automation_request_out_crossvm_dp = "W";
+        vmRadio.attestation_id_list_out_crossvm_dp = "W";
         vmRadio.uxas_log_in_crossvm_dp = "R";
 
         vmUxAS.operating_region_in_crossvm_dp = "R";

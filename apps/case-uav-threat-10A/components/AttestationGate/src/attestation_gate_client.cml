@@ -72,6 +72,7 @@ fun clear buffer =
 
 fun mk_tid_array () =
   let val project = Word8Array.substring trusted_id_buffer
+(*  val _ = API.logInfo(String.concat ["trusted_id_buffer: ", Word8Array.substring trusted_id_buffer 0 12]) *)
   in case (Int.fromString (project 0 4),
            Int.fromString (project 4 4),
            Int.fromString (project 8 4))
@@ -147,6 +148,7 @@ fun dropBar s = String.substring s 0 (String.size s - 1);
 (*---------------------------------------------------------------------------*)
 
 fun getID bytes = (
+(*  API.logInfo(Word8Array.substring bytes 0 (Word8Array.length bytes)) ; *)
  if Word8Array.sub bytes 0 = w8zero then
     None
  else
@@ -258,14 +260,23 @@ fun att_gate () =
     val (a,b,c)    = att_gate_seq tidArrOpt opregionID lstID autorqtID
 (*  val _          = fill_out_buffers() *)
   in
-(*  API.logInfo (String.concat ["\n\t",  *)
-(*                              (tid_array_to_string tidArrOpt),  *)
-(*                              "\n\topregionID = ",  *)
-(*                              id_to_string opregionID,  *)
-(*                              "\n\tlstID = ",  *)
-(*                              id_to_string lstID,  *)
-(*                              "\n\tautorqtID = ",  *)
-(*                              id_to_string autorqtID])  *)
+    
+(*    
+      (if Word8Array.sub operating_region_buffer 0 <> Word8.fromInt 0 orelse
+      Word8Array.sub linesearch_task_buffer 0 <> Word8.fromInt 0 orelse
+      Word8Array.sub automation_request_buffer 0 <> Word8.fromInt 0 then
+
+        API.logInfo (String.concat ["\n\t",  
+                                (tid_array_to_string tidArrOpt),
+                                "\n\topregionID = ",  
+                                id_to_string opregionID,  
+                                "\n\tlstID = ",  
+                                id_to_string lstID,  
+                                "\n\tautorqtID = ",  
+                                id_to_string autorqtID]) 
+    else())
+    ;
+*)  
 
 (*
     (if a then API.send_OperatingRegion_out operating_region_buffer_out else ())
@@ -275,46 +286,49 @@ fun att_gate () =
 
     (if Word8Array.sub operating_region_buffer 0 <> Word8.fromInt 0 then (
       if a then (
-      Word8Array.copy operating_region_buffer 1 (Word8Array.length operating_region_buffer - 1) operating_region_buffer_out 0;
-      API.send_OperatingRegion_out operating_region_buffer_out)
-     else (
-       API.logInfo (String.concat ["\n*****************************************\n",
+        Word8Array.copy operating_region_buffer 1 (Word8Array.length operating_region_buffer - 1) operating_region_buffer_out 0;
+        API.send_OperatingRegion_out operating_region_buffer_out
+      )
+      else (
+        API.logInfo (String.concat ["\n******************************************\n",
                                   "** Attestation Gate:                    **\n",
                                   "** An Operating Region Message from an  **\n",
-                                  "** untrusted source was intercepted.    **\n",
+                                  "** untrusted source was blocked.        **\n",
                                   "** This could be due to an attack.      **\n",
                                   "******************************************\n\n"])
-     )
+      )
     )
     else())
     ;
     (if Word8Array.sub linesearch_task_buffer 0 <> Word8.fromInt 0 then (
       if b then (
-      Word8Array.copy linesearch_task_buffer 1 (Word8Array.length  linesearch_task_buffer - 1) linesearch_task_buffer_out 0;
-      API.send_LineSearchTask_out linesearch_task_buffer_out)
-     else (
-       API.logInfo (String.concat ["\n****************************************\n",
+        Word8Array.copy linesearch_task_buffer 1 (Word8Array.length linesearch_task_buffer - 1) linesearch_task_buffer_out 0;
+        API.send_LineSearchTask_out linesearch_task_buffer_out
+      )
+      else (
+        API.logInfo (String.concat ["\n*****************************************\n",
                                   "** Attestation Gate:                   **\n",
                                   "** A Line Search Task Message from an  **\n",
-                                  "** untrusted source was intercepted.   **\n",
+                                  "** untrusted source was blocked.       **\n",
                                   "** This could be due to an attack.     **\n",
                                   "*****************************************\n\n"])
-     )
+      )
     )
     else())
     ;
     (if Word8Array.sub automation_request_buffer 0 <> Word8.fromInt 0 then (
       if c then (
-      Word8Array.copy automation_request_buffer 1 (Word8Array.length automation_request_buffer - 1) automation_request_buffer_out 0;
-      API.send_AutomationRequest_out automation_request_buffer_out)
-     else (
-       API.logInfo (String.concat ["\n*****************************************\n",
+        Word8Array.copy automation_request_buffer 1 (Word8Array.length automation_request_buffer - 1) automation_request_buffer_out 0;
+        API.send_AutomationRequest_out automation_request_buffer_out
+      )
+      else (
+        API.logInfo (String.concat ["\n******************************************\n",
                                   "** Attestation Gate:                    **\n",
                                   "** An Automation Request Message from   **\n",
-                                  "** an untrusted source was intercepted. **\n",
+                                  "** an untrusted source was blocked.     **\n",
                                   "** This could be due to an attack.      **\n",
                                   "******************************************\n\n"])
-     )
+      )
     )
     else())
   end
