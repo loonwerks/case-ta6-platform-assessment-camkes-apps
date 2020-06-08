@@ -199,7 +199,7 @@ MyAddExternalProjFilesToOverlay(
     overlay
     "home/uxas/ex/p2/01_Waterway/Messages/tasks"
     FILES
-    PointList-LineSearch-Vuln.xml
+    1000_LineSearch_LINE_Waterway_Deschutes.xml
     1001_AutomationRequest_LINE_Waterway_Deschutes.xml
 )
 
