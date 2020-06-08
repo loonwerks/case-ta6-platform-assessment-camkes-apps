@@ -95,7 +95,8 @@ from the waterway search example.
 
 The step 2 ground station application builds a seL4 image containing a single virtual machine.  The hardware ethernet
 device is mapped through to the VM and the VM contains OpenUxAS and configuration files to run as the ground station
-from the waterway search example.  The VM also contains the User Attestation Manager.
+from the waterway search example.  The VM also contains the User Attestation Manager.  Step 2 is the final integration step
+for the ground station.
 
 ### case-uav-step1
 
@@ -129,6 +130,11 @@ processing.
 
 The step 5 unmanned air vehicle application extends the case-uav-step3 application by including the Attestation Manager in the 
 Radio VM.
+
+### case-uav-step6
+
+The step 6 unmanned air vehicle application forms the final integration of all application, VM, high-assurance, and attestation
+components.  It merges case-uave-step4 and case-uav-step5 and forms a basis for the mitigated threat scenarios below. 
 
 ### case-uav-threat-3A1-unmitigated
 
