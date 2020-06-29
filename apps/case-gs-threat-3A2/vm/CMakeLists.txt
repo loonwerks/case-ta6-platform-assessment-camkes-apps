@@ -153,7 +153,7 @@ ExternalProject_Add(
     GIT_REPOSITORY
     https://github.com/loonwerks/case-ta6-experimental-platform-OpenUxAS.git
     GIT_TAG
-    develop-case-ta6-ph2-example01-threat-3A2-unmitigated
+    develop-case-ta6-ph2-example01-threat-3A2
     GIT_SHALLOW
     true
     INSTALL_COMMAND
@@ -199,7 +199,8 @@ MyAddExternalProjFilesToOverlay(
     overlay
     "home/uxas/ex/p2/01_Waterway/Messages/tasks"
     FILES
-    1000_LineSearch_LINE_Waterway_Deschutes.xml
+    1000_LineSearch_LINE_Waterway_Deschutes_bad.xml
+    1000_LineSearch_LINE_Waterway_Deschutes_good.xml
     1001_AutomationRequest_LINE_Waterway_Deschutes.xml
 )
 
