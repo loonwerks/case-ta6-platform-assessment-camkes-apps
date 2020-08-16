@@ -159,28 +159,41 @@ function(MyAddExternalProjFilesToOverlay external_target external_install_dir ov
     endforeach()
 endfunction(MyAddExternalProjFilesToOverlay)
 
+find_program(CAKE NAMES cake32 cake PATHS "~/cake-x64-x32/" "/cake-x64-x32/" DOC "32-bit targeting CakeML compiler")
+if("${CAKE}" STREQUAL "CAKE-NOTFOUND")
+    message(FATAL_ERROR "Could not find a 32-bit targeting CakeML compiler. Please ensure cake32 is on the system path.")
+endif()
+find_program(armhf-gcc NAMES arm-linux-gnueabihf-gcc)
+if("${armhf-gcc}" STREQUAL "armhf-gcc-NOTFOUND")
+    message(FATAL_ERROR "Could not find arm-linux-gnueabihf-gcc, please install and place on the system path.")
+endif()
 ExternalProject_Add(
     useram
     GIT_REPOSITORY
-    https://github.com/gaj7/am-bin-uav.git
+    https://github.com/ku-sldg/am-cakeml.git
     GIT_TAG
-    meas
+    dev-case-exp
     INSTALL_COMMAND
     ""
-    UPDATE_COMMAND
-    ""
-    CONFIGURE_COMMAND
-    ""
     BUILD_COMMAND
-    ""
+    cmake --build . --target uav_am
+    BUILD_ALWAYS
+    ON 
+    CMAKE_ARGS 
+        -DCMAKE_C_COMPILER=${armhf-gcc}
+        -DCMAKE_C_FLAGS=${BASE_C_FLAGS}
+        -DCAKE=${CAKE}
+        -DSTATIC_LINKING=ON
+        -Dam_queue=${CMAKE_CURRENT_SOURCE_DIR}/../am_queue/
 )
+ExternalProject_Get_property(useram DOWNLOAD_DIR)
 MyAddExternalProjFilesToOverlay(
     useram
-    ${CMAKE_CURRENT_BINARY_DIR}/useram-prefix/src/useram
+    ${DOWNLOAD_DIR}/useram-build
     overlay_radio
     "usr/bin"
     FILES
-    uav
+    uav_am
 )
 
 ExternalProject_Add(

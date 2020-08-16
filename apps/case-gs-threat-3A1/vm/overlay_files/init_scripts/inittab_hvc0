@@ -35,7 +35,7 @@ null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 hvc0:2345:respawn:/sbin/getty -L 9600 hvc0
 
 # Run AM
-::respawn:groundstation
+::respawn:gs_am 192.168.2.7
 
 # Stuff to do for the 3-finger salute
 #::ctrlaltdel:/sbin/reboot
